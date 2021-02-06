@@ -1,0 +1,5 @@
+[package]
+name = "bdd-raytracer"
+version = "0.1.0"
+authors = ["will.zegers"]
+edition = "2018"
