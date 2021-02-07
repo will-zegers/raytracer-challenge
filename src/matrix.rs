@@ -106,7 +106,7 @@ impl Matrix {
         return self.det() != 0.;
     }
 
-    fn inverse(&self) -> Self {
+    pub fn inverse(&self) -> Self {
         assert!(self.is_invertible());
 
         let mut v = Vec::with_capacity(self.m * self.n);
@@ -167,7 +167,9 @@ impl Matrix {
         Self {
             m: 4,
             n: 4,
-            elements: vec![1., xy, xz, 0., yx, 1., yz, 0., zx, zy, 1., 0., 0., 0., 0., 1.],
+            elements: vec![
+                1., xy, xz, 0., yx, 1., yz, 0., zx, zy, 1., 0., 0., 0., 0., 1.,
+            ],
         }
     }
 }
@@ -223,10 +225,34 @@ impl Mul<Matrix> for Matrix {
     }
 }
 
+impl Mul<Point> for &Matrix {
+    type Output = Point;
+
+    fn mul(self, rhs: Point) -> Self::Output {
+        let mut v = vec![0.; self.m];
+        for i in 0..self.m {
+            for j in 0..self.n {
+                let idx1 = i * self.n + j;
+                v[i] += self.elements[idx1] * rhs[j];
+            }
+        }
+
+        Self::Output::new(v[0], v[1], v[2])
+    }
+}
+
 impl Mul<Point> for Matrix {
     type Output = Point;
 
     fn mul(self, rhs: Point) -> Self::Output {
+        &self * rhs
+    }
+}
+
+impl Mul<Vector> for &Matrix {
+    type Output = Vector;
+
+    fn mul(self, rhs: Vector) -> Self::Output {
         let mut v = vec![0.; self.m];
         for i in 0..self.m {
             for j in 0..self.n {
@@ -243,15 +269,7 @@ impl Mul<Vector> for Matrix {
     type Output = Vector;
 
     fn mul(self, rhs: Vector) -> Self::Output {
-        let mut v = vec![0.; self.m];
-        for i in 0..self.m {
-            for j in 0..self.n {
-                let idx1 = i * self.n + j;
-                v[i] += self.elements[idx1] * rhs[j];
-            }
-        }
-
-        Self::Output::new(v[0], v[1], v[2])
+        &self * rhs
     }
 }
 
@@ -691,32 +709,32 @@ mod test {
         // shear in x in propotion to y
         let t = Matrix::shearing(1., 0., 0., 0., 0., 0.);
         let p = Point::new(2., 3., 4.);
-        assert_eq!(t*p, Point::new(5., 3., 4.));
+        assert_eq!(t * p, Point::new(5., 3., 4.));
 
         // shear in x in propotion to z
         let t = Matrix::shearing(0., 1., 0., 0., 0., 0.);
         let p = Point::new(2., 3., 4.);
-        assert_eq!(t*p, Point::new(6., 3., 4.));
+        assert_eq!(t * p, Point::new(6., 3., 4.));
 
         // shear in y in propotion to x
         let t = Matrix::shearing(0., 0., 1., 0., 0., 0.);
         let p = Point::new(2., 3., 4.);
-        assert_eq!(t*p, Point::new(2., 5., 4.));
+        assert_eq!(t * p, Point::new(2., 5., 4.));
 
         // shear in y in propotion to z
         let t = Matrix::shearing(0., 0., 0., 1., 0., 0.);
         let p = Point::new(2., 3., 4.);
-        assert_eq!(t*p, Point::new(2., 7., 4.));
+        assert_eq!(t * p, Point::new(2., 7., 4.));
 
         // shear in z in propotion to x
         let t = Matrix::shearing(0., 0., 0., 0., 1., 0.);
         let p = Point::new(2., 3., 4.);
-        assert_eq!(t*p, Point::new(2., 3., 6.));
+        assert_eq!(t * p, Point::new(2., 3., 6.));
 
         // shear in z in propotion to y
         let t = Matrix::shearing(0., 0., 0., 0., 0., 1.);
         let p = Point::new(2., 3., 4.);
-        assert_eq!(t*p, Point::new(2., 3., 7.));
+        assert_eq!(t * p, Point::new(2., 3., 7.));
     }
 
     #[test]
@@ -745,6 +763,6 @@ mod test {
         let m_t = Matrix::translation(10., 5., 7.);
         let t = m_t * m_s * m_r;
 
-        assert_eq!(t*p, Point::new(15., 0., 7.));
+        assert_eq!(t * p, Point::new(15., 0., 7.));
     }
 }

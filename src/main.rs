@@ -7,11 +7,17 @@ use canvas::Canvas;
 mod color;
 use color::Color;
 
+mod intersection;
+
 mod matrix;
 use matrix::{Axis, Matrix};
 
 mod point;
 use point::Point;
+
+mod ray;
+
+mod sphere;
 
 mod vector;
 use vector::Vector;
@@ -21,8 +27,8 @@ fn write_square(canvas: &mut Canvas, x: f64, y: f64) {
     let y = (y + (canvas.width as f64 / 2.)) as usize;
     let size = 3;
 
-    for i in x-size .. x+size {
-        for j in y-size .. y+size {
+    for i in x - size..x + size {
+        for j in y - size..y + size {
             canvas.write_pixel(i, j, Color::new(1., 1., 1.));
         }
     }
