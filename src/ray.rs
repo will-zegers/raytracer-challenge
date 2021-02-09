@@ -19,7 +19,7 @@ impl<'a> Ray {
     }
 
     pub fn intersects(&self, s: &'a Sphere) -> Option<IntersectionList<'a>> {
-        let ray_t = Self::transform(self, &s.transform.inverse());
+        let ray_t = Self::transform(self, &s.inverse_transform());
 
         let sphere_to_ray = ray_t.origin - Point::new(0., 0., 0.);
 
@@ -131,7 +131,7 @@ mod test {
         // intersecting a scaled sphere with a ray
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let mut s = Sphere::new();
-        s.transform = Matrix::scaling(2., 2., 2.);
+        s.set_transform(Matrix::scaling(2., 2., 2.));
         let xs = r.intersects(&s).unwrap();
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 3.);
@@ -140,7 +140,7 @@ mod test {
         // intersecting a translated sphere with a ray
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let mut s = Sphere::new();
-        s.transform = Matrix::translation(5., 0., 0.);
+        s.set_transform(Matrix::translation(5., 0., 0.));
         assert!(r.intersects(&s).is_none());
     }
 }

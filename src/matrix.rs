@@ -163,7 +163,7 @@ impl Matrix {
         m
     }
 
-    fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> Self {
+    pub fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> Self {
         Self {
             m: 4,
             n: 4,

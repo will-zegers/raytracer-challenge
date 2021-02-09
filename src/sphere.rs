@@ -4,14 +4,29 @@ use crate::matrix::Matrix;
 
 #[derive(Clone, Debug)]
 pub struct Sphere {
-    pub transform: Matrix,
+    transform: Matrix,
+    inv_transform: Matrix,
 }
 
 impl Sphere {
     pub fn new() -> Self {
         Self {
             transform: Matrix::eye(4),
+            inv_transform: Matrix::eye(4),
         }
+    }
+
+    pub fn set_transform(&mut self, t: Matrix) {
+        self.inv_transform = t.inverse();
+        self.transform = t;
+    }
+
+    pub fn transform(&self) -> &Matrix {
+        &self.transform
+    }
+
+    pub fn inverse_transform(&self) -> &Matrix {
+        &self.inv_transform
     }
 }
 
@@ -29,7 +44,8 @@ mod test {
     fn transform() {
         let mut s = Sphere::new();
         let t = Matrix::translation(2., 3., 4.);
-        s.transform = t.clone();
-        assert_eq!(s.transform, t);
+        s.set_transform(t.clone());
+        assert_eq!(*s.transform(), t.clone());
+        assert_eq!(*s.inverse_transform(), t.inverse());
     }
 }
