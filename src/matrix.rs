@@ -142,22 +142,22 @@ impl Matrix {
         let mut m = Matrix::eye(4);
         match axis {
             Axis::X => {
-                m[(1, 1)] = f64::cos(r);
-                m[(1, 2)] = -f64::sin(r);
-                m[(2, 1)] = f64::sin(r);
-                m[(2, 2)] = f64::cos(r);
+                m[1][1] = f64::cos(r);
+                m[1][2] = -f64::sin(r);
+                m[2][1] = f64::sin(r);
+                m[2][2] = f64::cos(r);
             }
             Axis::Y => {
-                m[(0, 0)] = f64::cos(r);
-                m[(0, 2)] = f64::sin(r);
-                m[(2, 0)] = -f64::sin(r);
-                m[(2, 2)] = f64::cos(r);
+                m[0][0] = f64::cos(r);
+                m[0][2] = f64::sin(r);
+                m[2][0] = -f64::sin(r);
+                m[2][2] = f64::cos(r);
             }
             Axis::Z => {
-                m[(0, 0)] = f64::cos(r);
-                m[(0, 1)] = -f64::sin(r);
-                m[(1, 0)] = f64::sin(r);
-                m[(1, 1)] = f64::cos(r);
+                m[0][0] = f64::cos(r);
+                m[0][1] = -f64::sin(r);
+                m[1][0] = f64::sin(r);
+                m[1][1] = f64::cos(r);
             }
         };
         m
@@ -185,17 +185,19 @@ impl PartialEq<Matrix> for Matrix {
     }
 }
 
-impl Index<(usize, usize)> for Matrix {
-    type Output = f64;
+impl Index<usize> for Matrix {
+    type Output = [f64];
 
-    fn index(&self, i: (usize, usize)) -> &Self::Output {
-        &self.elements[i.0 * self.m + i.1]
+    fn index(&self, i: usize) -> &Self::Output {
+        let start = i * self.n;
+        &self.elements[start..start + self.n]
     }
 }
 
-impl IndexMut<(usize, usize)> for Matrix {
-    fn index_mut(&mut self, i: (usize, usize)) -> &mut Self::Output {
-        &mut self.elements[i.0 * self.m + i.1]
+impl IndexMut<usize> for Matrix {
+    fn index_mut(&mut self, i: usize) -> &mut Self::Output {
+        let start = i * self.n;
+        &mut self.elements[start..start + self.n]
     }
 }
 
@@ -282,29 +284,29 @@ mod test {
         let v = vec![-3., 5., 1., -2.];
         let m = Matrix::new(2, 2, v);
 
-        assert_eq!(m[(0, 0)], -3.);
-        assert_eq!(m[(0, 1)], 5.);
-        assert_eq!(m[(1, 0)], 1.);
-        assert_eq!(m[(1, 1)], -2.);
+        assert_eq!(m[0][0], -3.);
+        assert_eq!(m[0][1], 5.);
+        assert_eq!(m[1][0], 1.);
+        assert_eq!(m[1][1], -2.);
 
         let v = vec![-3., 5., 0., 1., -2., -7., 0., 1., 1.];
         let m = Matrix::new(3, 3, v);
-        assert_eq!(m[(0, 0)], -3.);
-        assert_eq!(m[(1, 1)], -2.);
-        assert_eq!(m[(2, 2)], 1.);
+        assert_eq!(m[0][0], -3.);
+        assert_eq!(m[1][1], -2.);
+        assert_eq!(m[2][2], 1.);
 
         let v = vec![
             1., 2., 3., 4., 5.5, 6.5, 7.5, 8.5, 9., 10., 11., 12., 13.5, 14.5, 15.5, 16.5,
         ];
         let m = Matrix::new(4, 4, v);
 
-        assert_eq!(m[(0, 0)], 1.);
-        assert_eq!(m[(0, 3)], 4.);
-        assert_eq!(m[(1, 0)], 5.5);
-        assert_eq!(m[(1, 2)], 7.5);
-        assert_eq!(m[(2, 2)], 11.);
-        assert_eq!(m[(3, 0)], 13.5);
-        assert_eq!(m[(3, 2)], 15.5);
+        assert_eq!(m[0][0], 1.);
+        assert_eq!(m[0][3], 4.);
+        assert_eq!(m[1][0], 5.5);
+        assert_eq!(m[1][2], 7.5);
+        assert_eq!(m[2][2], 11.);
+        assert_eq!(m[3][0], 13.5);
+        assert_eq!(m[3][2], 15.5);
     }
 
     #[test]
@@ -509,10 +511,10 @@ mod test {
 
         assert_eq!(m.det(), 532.);
         assert_eq!(m.cofactor(2, 3), -160.);
-        assert_eq!(m_inv[(3, 2)], -160. / 532.);
+        assert_eq!(m_inv[3][2], -160. / 532.);
 
         assert_eq!(m.cofactor(3, 2), 105.);
-        assert_eq!(m_inv[(2, 3)], 105. / 532.);
+        assert_eq!(m_inv[2][3], 105. / 532.);
 
         assert_eq!(
             m_inv,

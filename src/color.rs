@@ -3,7 +3,7 @@ use std::ops::{Add, Mul, Sub};
 
 const TOL: f64 = 1e-9;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Color {
     pub r: f64,
     pub g: f64,

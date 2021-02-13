@@ -10,6 +10,7 @@ pub struct Vector {
     w: f64,
 }
 
+// statics
 impl Vector {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z, w: 0. }
@@ -27,13 +28,20 @@ impl Vector {
     pub fn dot(v1: &Vector, v2: &Vector) -> f64 {
         v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
     }
+}
 
+// methods
+impl Vector {
     pub fn length(&self) -> f64 {
         f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
     }
 
-    pub fn normalize(v: Self) -> Self {
-        (1. / v.length()) * v
+    pub fn normalize(self) -> Self {
+        (1. / self.length()) * self
+    }
+
+    pub fn reflect(self, normal: &Self) -> Self {
+        self - 2. * Vector::dot(&self, normal) * *normal
     }
 }
 
@@ -188,16 +196,16 @@ mod test {
     #[test]
     fn normalize() {
         let v = Vector::new(4., 0., 0.);
-        assert_eq!(Vector::normalize(v), Vector::new(1., 0., 0.));
+        assert_eq!(v.normalize(), Vector::new(1., 0., 0.));
 
         let v = Vector::new(1., 2., 3.);
         assert_eq!(
-            Vector::normalize(v),
+            v.normalize(),
             Vector::new(0.267261241, 0.534522483, 0.801783725)
         );
 
         let v = Vector::new(1., 2., 3.);
-        assert_eq!(Vector::normalize(v).length(), 1.,);
+        assert_eq!(v.normalize().length(), 1.,);
     }
 
     #[test]
@@ -213,5 +221,20 @@ mod test {
         let b = Vector::new(2., 3., 4.);
         assert_eq!(Vector::cross(&a, &b), Vector::new(-1., 2., -1.));
         assert_eq!(Vector::cross(&b, &a), Vector::new(1., -2., 1.));
+    }
+
+    #[test]
+    fn reflect() {
+        // reflecting a vector approaching at 45⁰
+        let v = Vector::new(1., -1., 0.);
+        let n = Vector::new(0., 1., 0.);
+        let r = v.reflect(&n);
+        assert_eq!(r, Vector::new(1., 1., 0.));
+
+        // reflecting a vector off a slanted surface
+        let v = Vector::new(0., -1., 0.);
+        let n = Vector::new(f64::sqrt(2.) / 2., f64::sqrt(2.) / 2., 0.);
+        let r = v.reflect(&n);
+        assert_eq!(r, Vector::new(1., 0., 0.));
     }
 }

@@ -1,4 +1,5 @@
 #![allow(unused_imports)]
+#![allow(unused_variables)]
 use std::f64::consts::PI;
 
 mod canvas;
@@ -9,6 +10,11 @@ use color::Color;
 
 mod intersection;
 
+mod light;
+use light::PointLight;
+
+mod material;
+
 mod matrix;
 use matrix::{Axis, Matrix};
 
@@ -16,38 +22,52 @@ mod point;
 use point::Point;
 
 mod ray;
+use crate::ray::Ray;
 
 mod sphere;
+use crate::sphere::Sphere;
 
 mod vector;
 use vector::Vector;
 
-fn write_square(canvas: &mut Canvas, x: f64, y: f64) {
-    let x = (x + (canvas.width as f64 / 2.)) as usize;
-    let y = (y + (canvas.width as f64 / 2.)) as usize;
-    let size = 3;
+fn main() {
+    let (width, height) = (600, 600);
+    let aspect_ratio = (width as f64) / (height as f64);
+    let mut cv = Canvas::new(width, height);
 
-    for i in x - size..x + size {
-        for j in y - size..y + size {
-            canvas.write_pixel(i, j, Color::new(1., 1., 1.));
+    let mut s = Sphere::new();
+    s.material.color = Color::new(1., 0.2, 1.);
+
+    let light = PointLight::new(Point::new(-10., 10., -10.), Color::new(1., 1., 1.));
+
+    let origin = Point::new(0., 0., -5.);
+    let z_wall = if origin.z < 0. {
+        -origin.z + 1.
+    } else {
+        -origin.z - 1.
+    };
+    let wall_width = 4.;
+    for i in 0..height {
+        let y = (wall_width / (2. * aspect_ratio)) - ((i as f64) * wall_width) / (aspect_ratio * (height as f64));
+
+        for j in 0..width {
+            let x = ((j as f64) * wall_width) / (width as f64) - (wall_width / 2.);
+
+            let r = Ray::new(origin, Vector::new(x, y, z_wall));
+            match r.intersects(&s) {
+                Some(hit) => {
+                    let hit = &hit[0];
+                    let point = r.at(hit.t);
+                    let normal = hit.object.normal_at(point);
+                    let eye = -r.direction;
+
+                    let color =
+                        light::lighting(&hit.object.material, &light, &point, &eye, &normal);
+                    cv.write_pixel(j, i, color);
+                }
+                None => (),
+            }
         }
     }
-}
-
-fn main() {
-    let mut c = Canvas::new(600, 600);
-    let mut angle = 0.;
-
-    for _ in 0..12 {
-        let t1 = Matrix::translation(0., -250., 0.);
-        let t2 = Matrix::rotation(Axis::Z, angle);
-        let p0 = Point::new(0., 0., 0.);
-
-        let p1 = t2 * t1 * p0;
-        write_square(&mut c, p1.x, p1.y);
-
-        angle += PI / 6.;
-    }
-
-    println!("{}", c.to_ppm());
+    println!("{}", cv.to_ppm());
 }
