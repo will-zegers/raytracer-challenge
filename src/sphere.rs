@@ -5,7 +5,7 @@ use crate::matrix::Matrix;
 use crate::point::Point;
 use crate::vector::Vector;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
     pub material: Material,
 
@@ -16,22 +16,36 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new() -> Self {
+    pub fn new(transform: Matrix, material: Material) -> Self {
+        let inv_transform = transform.inverse();
+        let transpose_inv = inv_transform.clone().transpose();
+        Self {
+            transform,
+            inv_transform,
+            transpose_inv,
+            center: Point::new(0., 0., 0.),
+            material,
+        }
+    }
+
+    pub fn default() -> Self {
         Self {
             transform: Matrix::eye(4),
             inv_transform: Matrix::eye(4),
             transpose_inv: Matrix::eye(4),
             center: Point::new(0., 0., 0.),
-            material: Material::new(),
+            material: Material::default(),
         }
     }
 
+    #[allow(dead_code)]
     pub fn set_transform(&mut self, t: Matrix) {
         self.inv_transform = t.inverse();
         self.transpose_inv = self.inv_transform.clone().transpose();
         self.transform = t;
     }
 
+    #[allow(dead_code)]
     pub fn transform(&self) -> &Matrix {
         &self.transform
     }
@@ -48,12 +62,6 @@ impl Sphere {
     }
 }
 
-impl PartialEq<Sphere> for Sphere {
-    fn eq(&self, _rhs: &Self) -> bool {
-        true
-    }
-}
-
 #[cfg(test)]
 mod test {
     use std::f64::consts::PI;
@@ -63,7 +71,7 @@ mod test {
 
     #[test]
     fn transform() {
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
         let t = Matrix::translation(2., 3., 4.);
         s.set_transform(t.clone());
         assert_eq!(*s.transform(), t.clone());
@@ -73,22 +81,22 @@ mod test {
     #[test]
     fn normal_at() {
         // the normal on a sphere at a point on the x axis
-        let s = Sphere::new();
+        let s = Sphere::default();
         let n = s.normal_at(Point::new(1., 0., 0.));
         assert_eq!(n, Vector::new(1., 0., 0.));
 
         // the normal on a sphere at a point on the y axis
-        let s = Sphere::new();
+        let s = Sphere::default();
         let n = s.normal_at(Point::new(0., 1., 0.));
         assert_eq!(n, Vector::new(0., 1., 0.));
 
         // the normal on a sphere at a point on the z axis
-        let s = Sphere::new();
+        let s = Sphere::default();
         let n = s.normal_at(Point::new(0., 0., 1.));
         assert_eq!(n, Vector::new(0., 0., 1.));
 
         // the normal on a sphere at a nonaxial point
-        let s = Sphere::new();
+        let s = Sphere::default();
         let n = s.normal_at(Point::new(
             f64::sqrt(3.) / 3.,
             f64::sqrt(3.) / 3.,
@@ -100,7 +108,7 @@ mod test {
         );
 
         // normals are all normalized
-        let s = Sphere::new();
+        let s = Sphere::default();
         let n = s.normal_at(Point::new(
             f64::sqrt(3.) / 3.,
             f64::sqrt(3.) / 3.,
@@ -109,13 +117,13 @@ mod test {
         assert_eq!(n, n.normalize());
 
         // computing the normal of a translated sphere
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
         s.set_transform(Matrix::translation(0., 1., 0.));
         let n = s.normal_at(Point::new(0., 1.70711, -0.70711));
         assert_eq!(n, Vector::new(0., 0.707106781, -0.707106781));
 
         // computing the normal of a transformed sphere
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
         let t = Matrix::scaling(1., 0.5, 1.) * Matrix::rotation(Axis::Z, PI / 5.);
         s.set_transform(t);
         let n = s.normal_at(Point::new(0., f64::sqrt(2.) / 2., -f64::sqrt(2.) / 2.));
@@ -124,11 +132,11 @@ mod test {
 
     #[test]
     fn material() {
-        let s = Sphere::new();
-        assert_eq!(s.material, Material::new());
+        let s = Sphere::default();
+        assert_eq!(s.material, Material::default());
 
-        let mut s = Sphere::new();
-        let mut m = Material::new();
+        let mut s = Sphere::default();
+        let mut m = Material::default();
 
         m.ambient = 1.;
         s.material = m.clone();

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::color::Color;
 
 pub struct Canvas {

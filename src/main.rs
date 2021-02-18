@@ -2,11 +2,16 @@
 #![allow(unused_variables)]
 use std::f64::consts::PI;
 
+mod camera;
+use camera::Camera;
+
 mod canvas;
 use canvas::Canvas;
 
 mod color;
 use color::Color;
+
+mod hit_record;
 
 mod intersection;
 
@@ -14,6 +19,7 @@ mod light;
 use light::PointLight;
 
 mod material;
+use material::Material;
 
 mod matrix;
 use matrix::{Axis, Matrix};
@@ -22,52 +28,59 @@ mod point;
 use point::Point;
 
 mod ray;
-use crate::ray::Ray;
+use ray::Ray;
 
 mod sphere;
-use crate::sphere::Sphere;
+use sphere::Sphere;
 
 mod vector;
 use vector::Vector;
 
+mod world;
+use world::World;
+
 fn main() {
-    let (width, height) = (600, 600);
-    let aspect_ratio = (width as f64) / (height as f64);
-    let mut cv = Canvas::new(width, height);
+    let mut objects = Vec::<Sphere>::new();
 
-    let mut s = Sphere::new();
-    s.material.color = Color::new(1., 0.2, 1.);
+    let floor_mat = Material::new(Color::new(1., 0.9, 0.9), 0.1, 0.9, 0., 200.);
+    let floor = Sphere::new(Matrix::scaling(10., 0.01, 10.), floor_mat);
+    objects.push(floor);
 
-    let light = PointLight::new(Point::new(-10., 10., -10.), Color::new(1., 1., 1.));
+    let left_wall_tf = Matrix::translation(0., 0., 5.)
+        * Matrix::rotation(Axis::Y, -PI / 4.)
+        * Matrix::rotation(Axis::X, PI / 2.)
+        * Matrix::scaling(10., 0.01, 10.);
+    let left_wall = Sphere::new(left_wall_tf, floor_mat);
+    objects.push(left_wall);
 
-    let origin = Point::new(0., 0., -5.);
-    let z_wall = if origin.z < 0. {
-        -origin.z + 1.
-    } else {
-        -origin.z - 1.
-    };
-    let wall_width = 4.;
-    for i in 0..height {
-        let y = (wall_width / (2. * aspect_ratio)) - ((i as f64) * wall_width) / (aspect_ratio * (height as f64));
+    let right_wall_tf = Matrix::translation(0., 0., 5.)
+        * Matrix::rotation(Axis::Y, PI / 4.)
+        * Matrix::rotation(Axis::X, PI / 2.)
+        * Matrix::scaling(10., 0.01, 10.);
+    let right_wall = Sphere::new(right_wall_tf, floor_mat);
+    objects.push(right_wall);
 
-        for j in 0..width {
-            let x = ((j as f64) * wall_width) / (width as f64) - (wall_width / 2.);
+    let middle_tf = Matrix::translation(-0.5, 1., 0.5);
+    let middle_mat = Material::new(Color::new(0.1, 1., 0.5), 0.1, 0.7, 0.3, 200.);
+    let middle = Sphere::new(middle_tf, middle_mat);
+    objects.push(middle);
 
-            let r = Ray::new(origin, Vector::new(x, y, z_wall));
-            match r.intersects(&s) {
-                Some(hit) => {
-                    let hit = &hit[0];
-                    let point = r.at(hit.t);
-                    let normal = hit.object.normal_at(point);
-                    let eye = -r.direction;
+    let right_tf = Matrix::translation(1.5, 0.5, -0.5) * Matrix::scaling(0.5, 0.5, 0.5);
+    let right_mat = Material::new(Color::new(0.5, 1., 0.1), 0.1, 0.7, 0.3, 200.);
+    let right = Sphere::new(right_tf, right_mat);
+    objects.push(right);
 
-                    let color =
-                        light::lighting(&hit.object.material, &light, &point, &eye, &normal);
-                    cv.write_pixel(j, i, color);
-                }
-                None => (),
-            }
-        }
-    }
-    println!("{}", cv.to_ppm());
+    let left_tf = Matrix::translation(-1.5, 0.33, -0.75) * Matrix::scaling(0.33, 0.33, 0.33);
+    let left_mat = Material::new(Color::new(1., 0.8, 0.1), 0.1, 0.7, 0.3, 200.);
+    let left = Sphere::new(left_tf, left_mat);
+    objects.push(left);
+
+    let mut camera = Camera::new(1920, 1080, PI / 3.);
+    let camera_tf = camera::view_transform(Point::new(0., 1.5, -5.), Point::new(0., 1., 0.), Vector::new(0., 1., 0.));
+    camera.set_transform(camera_tf);
+
+    let world = World::new(objects, PointLight::default());
+    let canvas = world.render(camera);
+    println!("{}", canvas.to_ppm());
 }
+

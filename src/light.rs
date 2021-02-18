@@ -3,6 +3,7 @@ use crate::material::Material;
 use crate::point::Point;
 use crate::vector::Vector;
 
+#[derive(Debug, PartialEq)]
 pub struct PointLight {
     pub position: Point,
     pub intensity: Color,
@@ -13,6 +14,14 @@ impl PointLight {
         Self {
             position,
             intensity,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn default() -> Self {
+        Self {
+            position: Point::new(-10., 10., -10.),
+            intensity: Color::new(1., 1., 1.),
         }
     }
 }
@@ -70,8 +79,15 @@ mod test {
     }
 
     #[test]
+    fn default() {
+        let light = PointLight::default();
+        assert_eq!(light.position, Point::new(10., 10., 10.));
+        assert_eq!(light.intensity, Color::new(1., 1., 1.));
+    }
+
+    #[test]
     fn test_lighting() {
-        let m = Material::new();
+        let m = Material::default();
         let position = Point::new(0., 0., 0.);
 
         // lighting with the eye between the light and the surface

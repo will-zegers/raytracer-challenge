@@ -79,34 +79,34 @@ mod test {
     fn intersects() {
         // ray goes through the unit sphere's center
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Sphere::default();
         let xs = r.intersects(&s).unwrap();
         assert_eq!(xs[0].t, 4.);
         assert_eq!(xs[1].t, 6.);
 
         // ray is tangential to unit sphere
         let r = Ray::new(Point::new(0., 1., -5.), Vector::new(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Sphere::default();
         let xs = r.intersects(&s).unwrap();
         assert_eq!(xs[0].t, 5.);
         assert_eq!(xs[1].t, 5.);
 
         // ray misses a sphere
         let r = Ray::new(Point::new(0., 2., -5.), Vector::new(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Sphere::default();
         let xs = r.intersects(&s);
         assert!(xs.is_none());
 
         // ray's origin is inside the sphere
         let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Sphere::default();
         let xs = r.intersects(&s).unwrap();
         assert_eq!(xs[0].t, -1.);
         assert_eq!(xs[1].t, 1.);
 
         // sphere is behind the ray
         let r = Ray::new(Point::new(0., 0., 5.), Vector::new(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Sphere::default();
         let xs = r.intersects(&s).unwrap();
         assert_eq!(xs[0].t, -6.);
         assert_eq!(xs[1].t, -4.);
@@ -130,7 +130,7 @@ mod test {
 
         // intersecting a scaled sphere with a ray
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
         s.set_transform(Matrix::scaling(2., 2., 2.));
         let xs = r.intersects(&s).unwrap();
         assert_eq!(xs.len(), 2);
@@ -139,7 +139,7 @@ mod test {
 
         // intersecting a translated sphere with a ray
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
         s.set_transform(Matrix::translation(5., 0., 0.));
         assert!(r.intersects(&s).is_none());
     }
