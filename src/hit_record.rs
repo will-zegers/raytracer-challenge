@@ -1,8 +1,12 @@
+use std::f64::EPSILON as BaseEPSILON;
+
 use crate::intersection::Intersection;
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector;
+
+const EPSILON: f64 = BaseEPSILON * 1e6;
 
 pub struct HitRecord<'a> {
     pub t: f64,
@@ -11,6 +15,7 @@ pub struct HitRecord<'a> {
     pub eyev: Vector,
     pub normalv: Vector,
     pub inside: bool,
+    pub over_point: Point,
 }
 
 #[allow(dead_code)]
@@ -37,6 +42,7 @@ impl<'a> HitRecord<'a> {
             eyev,
             normalv,
             inside,
+            over_point: point + EPSILON * normalv,
         }
     }
 }
@@ -44,6 +50,9 @@ impl<'a> HitRecord<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    use crate::material::Material;
+    use crate::matrix::Matrix;
 
     #[test]
     fn new() {
@@ -70,5 +79,17 @@ mod test {
         assert_eq!(h.eyev, Vector::new(0., 0., -1.));
         assert!(h.inside);
         assert_eq!(h.normalv, Vector::new(0., 0., -1.))
+    }
+
+    #[test]
+    fn over_point() {
+        let r = Ray::new(Point::new(0., 0., -5.) , Vector::new(0., 0., 1.));
+        let t = Matrix::translation(0., 0., 1.);
+        let shape = Sphere::new(t, Material::default());
+        let i = Intersection::new(5., &shape);
+
+        let rec = HitRecord::new(&i, &r);
+        assert!(rec.over_point.z < EPSILON / 2.);
+        assert!(rec.point.z > rec.over_point.z);
     }
 }
