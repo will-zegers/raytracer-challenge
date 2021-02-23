@@ -1,32 +1,33 @@
 use std::ops::Index;
+use std::rc::Rc;
 
-use crate::sphere::Sphere;
+use crate::shape::Sphere;
 
 #[derive(Clone, Debug)]
-pub struct Intersection<'a> {
+pub struct Intersection {
     pub t: f64,
-    pub object: &'a Sphere,
+    pub object: Rc<Sphere>,
 }
 
-impl<'a> Intersection<'a> {
-    pub fn new(t: f64, object: &'a Sphere) -> Self {
+impl Intersection {
+    pub fn new(t: f64, object: Rc<Sphere>) -> Self {
         Self { t, object }
     }
 }
 
 #[derive(Debug)]
-pub struct IntersectionList<'a> {
-    objects: Vec<Intersection<'a>>,
+pub struct IntersectionList {
+    objects: Vec<Intersection>,
 }
 
-impl<'a> IntersectionList<'a> {
+impl IntersectionList {
     pub fn empty() -> Self {
         Self {
             objects: Vec::new(),
         }
     }
 
-    pub fn new(mut intersections: Vec<Intersection<'a>>) -> Self {
+    pub fn new(mut intersections: Vec<Intersection>) -> Self {
         IntersectionList::sort(&mut intersections);
         Self {
             objects: intersections,
@@ -49,13 +50,13 @@ impl<'a> IntersectionList<'a> {
         IntersectionList::sort(&mut self.objects);
     }
 
-    fn sort(xs: &mut Vec<Intersection<'a>>) {
+    fn sort(xs: &mut Vec<Intersection>) {
         xs.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
     }
 }
 
-impl<'a> Index<usize> for IntersectionList<'a> {
-    type Output = Intersection<'a>;
+impl Index<usize> for IntersectionList {
+    type Output = Intersection;
 
     fn index(&self, i: usize) -> &Self::Output {
         &self.objects[i]
@@ -66,7 +67,7 @@ impl<'a> Index<usize> for IntersectionList<'a> {
 mod test {
     use super::*;
 
-    impl<'a> PartialEq<Intersection<'a>> for Intersection<'a> {
+    impl PartialEq<Intersection> for Intersection {
         fn eq(&self, rhs: &Self) -> bool {
             self.t == rhs.t && self.object == rhs.object
         }
@@ -74,14 +75,14 @@ mod test {
 
     #[test]
     fn new() {
-        let s = Sphere::default();
-        let i = Intersection::new(3.5, &s);
+        let s = Rc::new(Sphere::default());
+        let i = Intersection::new(3.5, s.clone());
         assert_eq!(i.t, 3.5);
-        assert_eq!(i.object, &s);
+        assert_eq!(i.object, s.clone());
 
-        let s = Sphere::default();
-        let i1 = Intersection::new(1., &s);
-        let i2 = Intersection::new(2., &s);
+        let s = Rc::new(Sphere::default());
+        let i1 = Intersection::new(1., s.clone());
+        let i2 = Intersection::new(2., s.clone());
 
         let xs = IntersectionList::new(vec![i1, i2]);
 
@@ -93,35 +94,35 @@ mod test {
     #[test]
     fn hit() {
         // the hit, when all intersections have a positive t
-        let s = Sphere::default();
-        let i1 = Intersection::new(1., &s);
-        let i2 = Intersection::new(2., &s);
+        let s = Rc::new(Sphere::default());
+        let i1 = Intersection::new(1., s.clone());
+        let i2 = Intersection::new(2., s.clone());
         let xs = IntersectionList::new(vec![i2, i1.clone()]);
         let i = xs.hit().unwrap();
         assert_eq!(*i, i1);
 
         // the hit, when some intersections have a negative t
-        let s = Sphere::default();
-        let i1 = Intersection::new(-1., &s);
-        let i2 = Intersection::new(1., &s);
+        let s = Rc::new(Sphere::default());
+        let i1 = Intersection::new(-1., s.clone());
+        let i2 = Intersection::new(1., s.clone());
         let xs = IntersectionList::new(vec![i2.clone(), i1]);
         let i = xs.hit().unwrap();
         assert_eq!(*i, i2);
 
         // the hit, when all intersections have a negative t
-        let s = Sphere::default();
-        let i1 = Intersection::new(-2., &s);
-        let i2 = Intersection::new(-1., &s);
+        let s = Rc::new(Sphere::default());
+        let i1 = Intersection::new(-2., s.clone());
+        let i2 = Intersection::new(-1., s.clone());
         let xs = IntersectionList::new(vec![i2, i1]);
         let i = xs.hit();
         assert!(i.is_none());
 
         // the hit, always the lowest non-negative intersection
-        let s = Sphere::default();
-        let i1 = Intersection::new(5., &s);
-        let i2 = Intersection::new(7., &s);
-        let i3 = Intersection::new(-3., &s);
-        let i4 = Intersection::new(2., &s);
+        let s = Rc::new(Sphere::default());
+        let i1 = Intersection::new(5., s.clone());
+        let i2 = Intersection::new(7., s.clone());
+        let i3 = Intersection::new(-3., s.clone());
+        let i4 = Intersection::new(2., s.clone());
         let xs = IntersectionList::new(vec![i1, i2, i3, i4.clone()]);
         let i = xs.hit().unwrap();
         assert_eq!(*i, i4);

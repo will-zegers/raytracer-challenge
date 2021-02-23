@@ -1,16 +1,17 @@
 use std::f64::EPSILON as BaseEPSILON;
+use std::rc::Rc;
 
 use crate::intersection::Intersection;
 use crate::point::Point;
 use crate::ray::Ray;
-use crate::sphere::Sphere;
+use crate::shape::Sphere;
 use crate::vector::Vector;
 
 const EPSILON: f64 = BaseEPSILON * 1e6;
 
-pub struct HitRecord<'a> {
+pub struct HitRecord {
     pub t: f64,
-    pub object: &'a Sphere,
+    pub object: Rc<Sphere>,
     pub point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
@@ -19,10 +20,10 @@ pub struct HitRecord<'a> {
 }
 
 #[allow(dead_code)]
-impl<'a> HitRecord<'a> {
-    pub fn new(i: &Intersection<'a>, r: &Ray) -> Self {
+impl HitRecord {
+    pub fn new(i: &Intersection, r: &Ray) -> Self {
         let t = i.t;
-        let object = i.object;
+        let object = i.object.clone();
         let point = r.at(t);
         let eyev = -r.direction;
         let mut normalv = object.normal_at(point);
@@ -59,7 +60,7 @@ mod test {
         // precomputing the state of an intersection, when an intersection occurs on the outside
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let s = Sphere::default();
-        let i = Intersection::new(4., &s);
+        let i = Intersection::new(4., Rc::new(s));
         let h = HitRecord::new(&i, &r);
 
         assert_eq!(h.t, i.t);
@@ -72,7 +73,7 @@ mod test {
         // the hit, when the intersection occurs on the inside
         let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.));
         let s = Sphere::default();
-        let i = Intersection::new(1., &s);
+        let i = Intersection::new(1., Rc::new(s));
         let h = HitRecord::new(&i, &r);
 
         assert_eq!(h.point, Point::new(0., 0., 1.));
@@ -86,7 +87,7 @@ mod test {
         let r = Ray::new(Point::new(0., 0., -5.) , Vector::new(0., 0., 1.));
         let t = Matrix::translation(0., 0., 1.);
         let shape = Sphere::new(t, Material::default());
-        let i = Intersection::new(5., &shape);
+        let i = Intersection::new(5., Rc::new(shape));
 
         let rec = HitRecord::new(&i, &r);
         assert!(rec.over_point.z < EPSILON / 2.);

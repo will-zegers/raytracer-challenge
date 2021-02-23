@@ -1,7 +1,9 @@
+use std::rc::Rc;
+
 use crate::intersection::{Intersection, IntersectionList};
 use crate::matrix::Matrix;
 use crate::point::Point;
-use crate::sphere::Sphere;
+use crate::shape::{Shape, Sphere};
 use crate::vector::Vector;
 
 pub struct Ray {
@@ -9,7 +11,7 @@ pub struct Ray {
     pub direction: Vector,
 }
 
-impl<'a> Ray {
+impl Ray {
     pub fn new(origin: Point, direction: Vector) -> Self {
         Self { origin, direction }
     }
@@ -18,7 +20,7 @@ impl<'a> Ray {
         self.origin + t * self.direction
     }
 
-    pub fn intersects(&self, s: &'a Sphere) -> Option<IntersectionList<'a>> {
+    pub fn intersects(&self, s: Rc<Sphere>) -> Option<IntersectionList> {
         let ray_t = Self::transform(self, &s.inverse_transform());
 
         let sphere_to_ray = ray_t.origin - Point::new(0., 0., 0.);
@@ -39,8 +41,8 @@ impl<'a> Ray {
         }
 
         Some(IntersectionList::new(vec![
-            Intersection::new(t1, &s),
-            Intersection::new(t2, &s),
+            Intersection::new(t1, s.clone()),
+            Intersection::new(t2, s.clone()),
         ]))
     }
 
@@ -80,34 +82,34 @@ mod test {
         // ray goes through the unit sphere's center
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let s = Sphere::default();
-        let xs = r.intersects(&s).unwrap();
+        let xs = r.intersects(Rc::new(s)).unwrap();
         assert_eq!(xs[0].t, 4.);
         assert_eq!(xs[1].t, 6.);
 
         // ray is tangential to unit sphere
         let r = Ray::new(Point::new(0., 1., -5.), Vector::new(0., 0., 1.));
         let s = Sphere::default();
-        let xs = r.intersects(&s).unwrap();
+        let xs = r.intersects(Rc::new(s)).unwrap();
         assert_eq!(xs[0].t, 5.);
         assert_eq!(xs[1].t, 5.);
 
         // ray misses a sphere
         let r = Ray::new(Point::new(0., 2., -5.), Vector::new(0., 0., 1.));
         let s = Sphere::default();
-        let xs = r.intersects(&s);
+        let xs = r.intersects(Rc::new(s));
         assert!(xs.is_none());
 
         // ray's origin is inside the sphere
         let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.));
         let s = Sphere::default();
-        let xs = r.intersects(&s).unwrap();
+        let xs = r.intersects(Rc::new(s)).unwrap();
         assert_eq!(xs[0].t, -1.);
         assert_eq!(xs[1].t, 1.);
 
         // sphere is behind the ray
         let r = Ray::new(Point::new(0., 0., 5.), Vector::new(0., 0., 1.));
         let s = Sphere::default();
-        let xs = r.intersects(&s).unwrap();
+        let xs = r.intersects(Rc::new(s)).unwrap();
         assert_eq!(xs[0].t, -6.);
         assert_eq!(xs[1].t, -4.);
     }
@@ -132,7 +134,7 @@ mod test {
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let mut s = Sphere::default();
         s.set_transform(Matrix::scaling(2., 2., 2.));
-        let xs = r.intersects(&s).unwrap();
+        let xs = r.intersects(Rc::new(s)).unwrap();
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 3.);
         assert_eq!(xs[1].t, 7.);
@@ -141,6 +143,6 @@ mod test {
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let mut s = Sphere::default();
         s.set_transform(Matrix::translation(5., 0., 0.));
-        assert!(r.intersects(&s).is_none());
+        assert!(r.intersects(Rc::new(s)).is_none());
     }
 }

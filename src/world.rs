@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::camera::Camera;
 use crate::canvas::Canvas;
 use crate::color::Color;
@@ -9,16 +11,16 @@ use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::point::Point;
 use crate::ray::Ray;
-use crate::sphere::Sphere;
+use crate::shape::Sphere;
 
 #[allow(dead_code)]
 pub struct World {
-    objects: Vec<Sphere>,
+    objects: Vec<Rc<Sphere>>,
     pub light: PointLight,
 }
 
 impl World {
-    pub fn new(objects: Vec<Sphere>, light: PointLight) -> Self {
+    pub fn new(objects: Vec<Rc<Sphere>>, light: PointLight) -> Self {
         Self {
             objects,
             light,
@@ -29,10 +31,8 @@ impl World {
     pub fn default() -> Self {
         let light = PointLight::default();
         let m1 = Material::new(Color::new(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.);
-        let mut s1 = Sphere::default();
-        s1.material = m1;
-        let mut s2 = Sphere::default();
-        s2.set_transform(Matrix::scaling(0.5, 0.5, 0.5));
+        let s1 = Rc::new(Sphere::new(Matrix::eye(4), m1));
+        let s2 = Rc::new(Sphere::new(Matrix::scaling(0.5, 0.5, 0.5), Material::default()));
 
         Self {
             objects: vec![s1, s2],
@@ -44,7 +44,7 @@ impl World {
     fn intersects(&self, r: &Ray) -> IntersectionList {
         let mut xs = IntersectionList::empty();
         for obj in &self.objects {
-            match r.intersects(&obj) {
+            match r.intersects(obj.clone()) {
                 Some(hits) => xs.extend(hits),
                 None => (),
             }
@@ -105,6 +105,8 @@ impl World {
 
 #[cfg(test)]
 mod test {
+    use std::rc::Rc;
+
     use super::*;
 
     use crate::intersection::Intersection;
@@ -114,10 +116,8 @@ mod test {
     #[test]
     fn default() {
         let m1 = Material::new(Color::new(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.);
-        let mut s1 = Sphere::default();
-        s1.material = m1;
-        let mut s2 = Sphere::default();
-        s2.set_transform(Matrix::scaling(0.5, 0.5, 0.5));
+        let s1 = Rc::new(Sphere::new(Matrix::eye(4), m1));
+        let s2 = Rc::new(Sphere::new(Matrix::scaling(0.5, 0.5, 0.5), Material::default()));
 
         let w = World::default();
         assert_eq!(w.light, PointLight::default());
@@ -144,7 +144,7 @@ mod test {
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let xs = w.intersects(&r);
         assert_ne!(xs.len(), 0);
-        assert_eq!(xs[0], Intersection::new(4.0, &w.objects[0]));
+        assert_eq!(xs[0], Intersection::new(4.0, w.objects[0].clone()));
 
         let rec = HitRecord::new(&xs[0], &r);
         let c = w.shade(&rec);
@@ -160,9 +160,9 @@ mod test {
         assert_eq!(c, Color::new(0.904984472, 0.904984472, 0.904984472));
 
         // shade() is given an intersection in shadow
-        let s1 = Sphere::default();
+        let s1 = Rc::new(Sphere::default());
         let t2 = Matrix::translation(0., 0., 10.);
-        let s2 = Sphere::new(t2, Material::default());
+        let s2 = Rc::new(Sphere::new(t2, Material::default()));
         let objects = vec![s1, s2];
         let light = PointLight::new(Point::new(0., 0., -10.), Color::new(1., 1., 1.));
         let w = World::new(objects, light);
@@ -190,15 +190,17 @@ mod test {
         assert_eq!(c, Color::new(0.380661193, 0.475826491, 0.285495894));
 
         // the color with an intersection behind the ray
-        let mut w = World::default();
-        let inner_color;
-        {
-            let mut outer = w.objects.get_mut(0).unwrap();
-            outer.material.ambient = 1.;
-            let mut inner = w.objects.get_mut(1).unwrap();
-            inner.material.ambient = 1.;
-            inner_color = inner.material.color;
-        }
+        let light = PointLight::default();
+
+        let m1 = Material::new(Color::new(0.8, 1.0, 0.6), 1., 0.7, 0.2, 200.);
+        let s1 = Rc::new(Sphere::new(Matrix::eye(4), m1));
+
+        let m2 = Material::new(Color::new(1., 1., 1.), 1., 0.9, 0.9, 200.);
+        let s2 = Rc::new(Sphere::new(Matrix::scaling(0.5, 0.5, 0.5), m2));
+
+        let mut w = World::new(vec![s1, s2], light);
+
+        let inner_color = Color::new(1., 1., 1.);
 
         let r = Ray::new(Point::new(0., 0., 0.75), Vector::new(0., 0., -1.));
         let c = w.color_at(&r);

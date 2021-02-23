@@ -3,6 +3,7 @@ use std::cmp::PartialEq;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::point::Point;
+use crate::shape::Shape;
 use crate::vector::Vector;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -38,20 +39,10 @@ impl Sphere {
         }
     }
 
-    #[allow(dead_code)]
     pub fn set_transform(&mut self, t: Matrix) {
         self.inv_transform = t.inverse();
         self.transpose_inv = self.inv_transform.clone().transpose();
         self.transform = t;
-    }
-
-    #[allow(dead_code)]
-    pub fn transform(&self) -> &Matrix {
-        &self.transform
-    }
-
-    pub fn inverse_transform(&self) -> &Matrix {
-        &self.inv_transform
     }
 
     pub fn normal_at(&self, p: Point) -> Vector {
@@ -59,6 +50,18 @@ impl Sphere {
         let obj_normal = obj_point - self.center;
         let world_normal = &self.transpose_inv * obj_normal;
         world_normal.normalize()
+    }
+}
+
+impl Shape for Sphere {
+    #[inline(always)]
+    fn transform(&self) -> &Matrix {
+        &self.transform
+    }
+
+    #[allow(dead_code)]
+    fn inverse_transform(&self) -> &Matrix {
+        &self.inv_transform
     }
 }
 
