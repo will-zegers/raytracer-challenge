@@ -2,7 +2,8 @@ use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use crate::point::Point;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
+#[cfg_attr(test, derive(Debug))]
 pub struct Vector {
     pub x: f64,
     pub y: f64,

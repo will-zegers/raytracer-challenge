@@ -5,7 +5,8 @@ use crate::vector::Vector;
 
 const TOL: f64 = 1e-9;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
+#[cfg_attr(test, derive(Debug))]
 pub struct Point {
     pub x: f64,
     pub y: f64,

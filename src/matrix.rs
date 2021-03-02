@@ -13,7 +13,8 @@ pub enum Axis {
     Z,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
+#[cfg_attr(test, derive(Debug))]
 pub struct Matrix {
     m: usize,
     n: usize,

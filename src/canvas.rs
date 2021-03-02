@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::color::Color;
 
 pub struct Canvas {
@@ -21,6 +20,7 @@ impl Canvas {
         self.pixels[idx] = color;
     }
 
+    #[cfg(test)]
     pub fn pixel_at(&self, x: usize, y: usize) -> &Color {
         let idx = y * self.width + x;
         &self.pixels[idx]

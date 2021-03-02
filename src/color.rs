@@ -2,8 +2,19 @@ use std::cmp::PartialEq;
 use std::ops::{Add, Mul, Sub};
 
 const TOL: f64 = 1e-9;
+pub const WHITE: Color = Color {
+    r: 1.,
+    g: 1.,
+    b: 1.,
+};
+pub const BLACK: Color = Color {
+    r: 0.,
+    g: 0.,
+    b: 0.,
+};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
+#[cfg_attr(test, derive(Debug))]
 pub struct Color {
     pub r: f64,
     pub g: f64,

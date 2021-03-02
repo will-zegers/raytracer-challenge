@@ -10,7 +10,7 @@ mod canvas;
 use canvas::Canvas;
 
 mod color;
-use color::Color;
+use color::{Color, BLACK, WHITE};
 
 mod hit_record;
 
@@ -25,6 +25,9 @@ use material::Material;
 mod matrix;
 use matrix::{Axis, Matrix};
 
+mod patterns;
+use patterns::{Checker, Gradient, Pattern, Ring, Solid, Stripe};
+
 mod point;
 use point::Point;
 
@@ -32,7 +35,7 @@ mod ray;
 use ray::Ray;
 
 mod shape;
-use shape::Sphere;
+use shape::{Plane, Shape, Sphere};
 
 mod vector;
 use vector::Vector;
@@ -41,47 +44,54 @@ mod world;
 use world::World;
 
 fn main() {
-    let mut objects = Vec::<Rc<Sphere>>::new();
+    let mut objects = Vec::<Rc<dyn Shape>>::new();
 
-    let floor_mat = Material::new(Color::new(1., 0.9, 0.9), 0.1, 0.9, 0., 200.);
-    let floor = Sphere::new(Matrix::scaling(10., 0.01, 10.), floor_mat);
+    let floor_mat = Material::new(Checker::new(WHITE, BLACK), 0.1, 0.9, 0., 200.);
+    let floor = Plane::new(Matrix::eye(4), floor_mat);
     objects.push(Rc::new(floor));
 
-    let left_wall_tf = Matrix::translation(0., 0., 5.)
-        * Matrix::rotation(Axis::Y, -PI / 4.)
-        * Matrix::rotation(Axis::X, PI / 2.)
-        * Matrix::scaling(10., 0.01, 10.);
-    let left_wall = Sphere::new(left_wall_tf, floor_mat);
-    objects.push(Rc::new(left_wall));
-
-    let right_wall_tf = Matrix::translation(0., 0., 5.)
-        * Matrix::rotation(Axis::Y, PI / 4.)
-        * Matrix::rotation(Axis::X, PI / 2.)
-        * Matrix::scaling(10., 0.01, 10.);
-    let right_wall = Sphere::new(right_wall_tf, floor_mat);
-    objects.push(Rc::new(right_wall));
+    let wall_mat = Material::new(Stripe::new(WHITE, BLACK), 0.1, 0.9, 0., 200.);
+    let wall_tf = Matrix::translation(0., 0., 3.) * Matrix::rotation(Axis::X, PI / 2.);
+    let wall = Plane::new(wall_tf, wall_mat);
+    objects.push(Rc::new(wall));
 
     let middle_tf = Matrix::translation(-0.5, 1., 0.5);
-    let middle_mat = Material::new(Color::new(0.1, 1., 0.5), 0.1, 0.7, 0.3, 200.);
-    let middle = Sphere::new(middle_tf, middle_mat);
+    let middle_mat = Material::new(
+        Gradient::new(WHITE, BLACK).set_transform(Matrix::rotation(Axis::Y, -PI / 2.)),
+        0.1,
+        0.7,
+        0.3,
+        200.,
+    );
+    let middle = Sphere::new()
+        .set_transform(middle_tf)
+        .set_material(middle_mat);
     objects.push(Rc::new(middle));
 
-    let right_tf = Matrix::translation(1.5, 0.5, -0.5) * Matrix::scaling(0.5, 0.5, 0.5);
-    let right_mat = Material::new(Color::new(0.5, 1., 0.1), 0.1, 0.7, 0.3, 200.);
-    let right = Sphere::new(right_tf, right_mat);
+    let right_tf = Matrix::translation(1.75, 0.5, -0.5) * Matrix::scaling(0.5, 0.5, 0.5);
+    let right_pattern = Checker::new(Color::new(0.9, 0.1, 0.1), Color::new(0.1, 0.1, 0.9))
+        .set_transform(Matrix::rotation(Axis::Z, PI / 4.) * Matrix::scaling(0.3, 0.3, 0.3));
+    let right_mat = Material::new(right_pattern, 0.1, 0.7, 0.3, 200.);
+    let right = Sphere::new()
+        .set_transform(right_tf)
+        .set_material(right_mat);
     objects.push(Rc::new(right));
 
     let left_tf = Matrix::translation(-1.5, 0.33, -0.75) * Matrix::scaling(0.33, 0.33, 0.33);
-    let left_mat = Material::new(Color::new(1., 0.8, 0.1), 0.1, 0.7, 0.3, 200.);
-    let left = Sphere::new(left_tf, left_mat);
+    let left_pattern = Ring::new(WHITE, BLACK)
+        .set_transform(Matrix::rotation(Axis::X, PI / 2.) * Matrix::scaling(0.1, 0.1, 0.1));
+    let left_mat = Material::new(left_pattern, 0.1, 0.7, 0.3, 200.);
+    let left = Sphere::new().set_transform(left_tf).set_material(left_mat);
     objects.push(Rc::new(left));
 
-    let mut camera = Camera::new(1920, 1080, PI / 3.);
-    let camera_tf = camera::view_transform(Point::new(0., 1.5, -5.), Point::new(0., 1., 0.), Vector::new(0., 1., 0.));
-    camera.set_transform(camera_tf);
+    let camera_tf = camera::view_transform(
+        Point::new(0., 1.5, -5.),
+        Point::new(0., 1., 0.),
+        Vector::new(0., 1., 0.),
+    );
+    let camera = Camera::new(848, 480, PI / 3.).set_transform(camera_tf);
 
     let world = World::new(objects, PointLight::default());
     let canvas = world.render(camera);
     println!("{}", canvas.to_ppm());
 }
-

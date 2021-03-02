@@ -1,14 +1,16 @@
 use std::cmp::PartialEq;
 
+use crate::intersection::{Intersection, IntersectionList};
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::point::Point;
+use crate::ray::Ray;
 use crate::shape::Shape;
 use crate::vector::Vector;
 
-#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Sphere {
-    pub material: Material,
+    material: Material,
 
     transform: Matrix,
     inv_transform: Matrix,
@@ -17,19 +19,7 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(transform: Matrix, material: Material) -> Self {
-        let inv_transform = transform.inverse();
-        let transpose_inv = inv_transform.clone().transpose();
-        Self {
-            transform,
-            inv_transform,
-            transpose_inv,
-            center: Point::new(0., 0., 0.),
-            material,
-        }
-    }
-
-    pub fn default() -> Self {
+    pub fn new() -> Self {
         Self {
             transform: Matrix::eye(4),
             inv_transform: Matrix::eye(4),
@@ -39,17 +29,17 @@ impl Sphere {
         }
     }
 
-    pub fn set_transform(&mut self, t: Matrix) {
+    pub fn set_transform(mut self, t: Matrix) -> Self {
         self.inv_transform = t.inverse();
         self.transpose_inv = self.inv_transform.clone().transpose();
         self.transform = t;
+
+        self
     }
 
-    pub fn normal_at(&self, p: Point) -> Vector {
-        let obj_point = &self.inv_transform * p;
-        let obj_normal = obj_point - self.center;
-        let world_normal = &self.transpose_inv * obj_normal;
-        world_normal.normalize()
+    pub fn set_material(mut self, m: Material) -> Self {
+        self.material = m;
+        self
     }
 }
 
@@ -59,9 +49,44 @@ impl Shape for Sphere {
         &self.transform
     }
 
-    #[allow(dead_code)]
+    #[inline(always)]
     fn inverse_transform(&self) -> &Matrix {
         &self.inv_transform
+    }
+
+    #[inline(always)]
+    fn transpose_inverse(&self) -> &Matrix {
+        &self.transpose_inv
+    }
+
+    #[inline(always)]
+    fn material(&self) -> &Material {
+        &self.material
+    }
+
+    fn local_intersect(&self, ray: Ray) -> Vec<f64> {
+        let sphere_to_ray = ray.origin - Point::new(0., 0., 0.);
+
+        let a = Vector::dot(&ray.direction, &ray.direction);
+        let b = 2. * Vector::dot(&ray.direction, &sphere_to_ray);
+        let c = Vector::dot(&sphere_to_ray, &sphere_to_ray) - 1.;
+        let discr = b * b - 4. * a * c;
+
+        if discr < 0. {
+            return Vec::new();
+        }
+
+        let mut t1 = (-b - f64::sqrt(discr)) / (2. * a);
+        let mut t2 = (-b + f64::sqrt(discr)) / (2. * a);
+        if t1 > t2 {
+            std::mem::swap(&mut t1, &mut t2);
+        }
+
+        vec![t1, t2]
+    }
+
+    fn local_normal_at(&self, p: Point) -> Vector {
+        p - self.center
     }
 }
 
@@ -74,9 +99,8 @@ mod test {
 
     #[test]
     fn transform() {
-        let mut s = Sphere::default();
         let t = Matrix::translation(2., 3., 4.);
-        s.set_transform(t.clone());
+        let s = Sphere::new().set_transform(t.clone());
         assert_eq!(*s.transform(), t.clone());
         assert_eq!(*s.inverse_transform(), t.inverse());
     }
@@ -84,22 +108,22 @@ mod test {
     #[test]
     fn normal_at() {
         // the normal on a sphere at a point on the x axis
-        let s = Sphere::default();
+        let s = Sphere::new();
         let n = s.normal_at(Point::new(1., 0., 0.));
         assert_eq!(n, Vector::new(1., 0., 0.));
 
         // the normal on a sphere at a point on the y axis
-        let s = Sphere::default();
+        let s = Sphere::new();
         let n = s.normal_at(Point::new(0., 1., 0.));
         assert_eq!(n, Vector::new(0., 1., 0.));
 
         // the normal on a sphere at a point on the z axis
-        let s = Sphere::default();
+        let s = Sphere::new();
         let n = s.normal_at(Point::new(0., 0., 1.));
         assert_eq!(n, Vector::new(0., 0., 1.));
 
         // the normal on a sphere at a nonaxial point
-        let s = Sphere::default();
+        let s = Sphere::new();
         let n = s.normal_at(Point::new(
             f64::sqrt(3.) / 3.,
             f64::sqrt(3.) / 3.,
@@ -111,7 +135,7 @@ mod test {
         );
 
         // normals are all normalized
-        let s = Sphere::default();
+        let s = Sphere::new();
         let n = s.normal_at(Point::new(
             f64::sqrt(3.) / 3.,
             f64::sqrt(3.) / 3.,
@@ -120,29 +144,27 @@ mod test {
         assert_eq!(n, n.normalize());
 
         // computing the normal of a translated sphere
-        let mut s = Sphere::default();
-        s.set_transform(Matrix::translation(0., 1., 0.));
+        let s = Sphere::new().set_transform(Matrix::translation(0., 1., 0.));
         let n = s.normal_at(Point::new(0., 1.70711, -0.70711));
         assert_eq!(n, Vector::new(0., 0.707106781, -0.707106781));
 
         // computing the normal of a transformed sphere
-        let mut s = Sphere::default();
         let t = Matrix::scaling(1., 0.5, 1.) * Matrix::rotation(Axis::Z, PI / 5.);
-        s.set_transform(t);
+        let s = Sphere::new().set_transform(t);
         let n = s.normal_at(Point::new(0., f64::sqrt(2.) / 2., -f64::sqrt(2.) / 2.));
         assert_eq!(n, Vector::new(0., 0.970142500, -0.242535625));
     }
 
     #[test]
     fn material() {
-        let s = Sphere::default();
+        let s = Sphere::new();
         assert_eq!(s.material, Material::default());
 
-        let mut s = Sphere::default();
+        let mut s = Sphere::new();
         let mut m = Material::default();
 
         m.ambient = 1.;
-        s.material = m.clone();
-        assert_eq!(s.material, m);
+        s.material = Material::default();
+        assert_eq!(s.material, Material::default());
     }
 }

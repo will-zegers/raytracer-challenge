@@ -32,7 +32,6 @@ pub struct Camera {
     pub vsize: usize,
     pub pixel_size: f64,
 
-    fov: f64,
     transform: Matrix,
     transform_inv: Matrix,
     half_width: f64,
@@ -58,7 +57,6 @@ impl Camera {
             hsize,
             vsize,
             pixel_size,
-            fov,
             transform: Matrix::eye(4),
             transform_inv: Matrix::eye(4),
             half_width,
@@ -66,9 +64,11 @@ impl Camera {
         }
     }
 
-    pub fn set_transform(&mut self, t: Matrix) {
+    pub fn set_transform(mut self, t: Matrix) -> Self {
         self.transform_inv = t.inverse();
         self.transform = t;
+
+        self
     }
 
     pub fn pixel_to_ray(&self, px: usize, py: usize) -> Ray {
@@ -168,7 +168,6 @@ mod test {
 
         assert_eq!(c.hsize, hsize);
         assert_eq!(c.vsize, vsize);
-        assert_eq!(c.fov, fov);
         assert_eq!(c.transform, Matrix::eye(4));
     }
 
@@ -199,8 +198,8 @@ mod test {
         );
 
         // constructing a ray when the camera is transformed
-        let mut c = Camera::new(201, 101, PI / 2.);
-        c.set_transform(Matrix::rotation(Axis::Y, PI / 4.) * Matrix::translation(0., -2., 5.));
+        let c = Camera::new(201, 101, PI / 2.)
+            .set_transform(Matrix::rotation(Axis::Y, PI / 4.) * Matrix::translation(0., -2., 5.));
         let r = c.pixel_to_ray(100, 50);
         assert_eq!(r.origin, Point::new(0., 2., -5.));
         assert_eq!(
