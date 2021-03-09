@@ -152,7 +152,7 @@ mod test {
 
     #[test]
     fn light_with_pattern() {
-        let m = Material::new(Stripe::new(WHITE, BLACK), 1., 0., 0., 200.);
+        let m = Material::new(Stripe::new(WHITE, BLACK), 1., 0., 0., 200., 0., 0., 1.);
         let sphere = Rc::new(Sphere::new().set_material(m));
         let eyev = Vector::new(0., 0., -1.);
         let normalv = Vector::new(0., 0., -1.);

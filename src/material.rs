@@ -10,6 +10,9 @@ pub struct Material {
     pub specular: f64,
     pub shininess: f64,
     pub pattern: Box<dyn Pattern>,
+    pub reflective: f64,
+    pub transparency: f64,
+    pub refractive_index: f64,
 }
 
 impl Material {
@@ -19,6 +22,9 @@ impl Material {
         diffuse: f64,
         specular: f64,
         shininess: f64,
+        reflective: f64,
+        transparency: f64,
+        refractive_index: f64,
     ) -> Self {
         Self {
             pattern: Box::new(pattern),
@@ -26,6 +32,9 @@ impl Material {
             diffuse,
             specular,
             shininess,
+            reflective,
+            transparency,
+            refractive_index,
         }
     }
 
@@ -36,6 +45,9 @@ impl Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
+            reflective: 0.,
+            transparency: 0.,
+            refractive_index: 1.,
         }
     }
 }
@@ -62,5 +74,7 @@ mod test {
         assert_eq!(m.diffuse, 0.9);
         assert_eq!(m.specular, 0.9);
         assert_eq!(m.shininess, 200.);
+        assert_eq!(m.transparency, 0.);
+        assert_eq!(m.refractive_index, 1.);
     }
 }

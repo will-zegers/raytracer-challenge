@@ -40,12 +40,12 @@ impl Pattern for Gradient {
 mod test {
     use super::*;
 
-    use crate::color::{BLACK, WHITE};
+    use crate::color;
 
     #[test]
     fn color_at() {
-        let pattern = Gradient::new(WHITE, BLACK);
-        assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), WHITE);
+        let pattern = Gradient::new(color::WHITE, color::BLACK);
+        assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), color::WHITE);
         assert_eq!(
             pattern.color_at(&Point::new(0.25, 0., 0.)),
             Color::new(0.75, 0.75, 0.75)

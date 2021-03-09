@@ -17,6 +17,11 @@ impl Solid {
             inv_tf: Matrix::eye(4),
         }
     }
+
+    pub fn set_transform(mut self, tf: Matrix) -> Self {
+        self.inv_tf = tf.inverse();
+        self
+    }
 }
 
 impl Pattern for Solid {

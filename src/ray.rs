@@ -23,7 +23,7 @@ impl Ray {
     pub fn intersects(&self, s: Rc<dyn Shape>) -> IntersectionList {
         let ray = Self::transform(self, &s.inverse_transform());
 
-        let mut xs = IntersectionList::empty();
+        let mut xs = IntersectionList::new();
         for hit in s.local_intersect(ray) {
             xs.push(Intersection::new(hit, s.clone()));
         }

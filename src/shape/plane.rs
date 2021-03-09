@@ -34,6 +34,21 @@ impl Plane {
             material: Material::default(),
         }
     }
+
+    pub fn set_material(mut self, m: Material) -> Self {
+        self.material = m;
+        self
+    }
+
+    pub fn set_transform(mut self, t: Matrix) -> Self {
+        let inv_transform = t.inverse();
+
+        self.transform = t;
+        self.inv_transform = inv_transform.clone();
+        self.transpose_inv = inv_transform.transpose();
+
+        self
+    }
 }
 
 impl Shape for Plane {

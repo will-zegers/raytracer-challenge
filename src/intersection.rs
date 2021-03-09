@@ -3,7 +3,8 @@ use std::rc::Rc;
 
 use crate::shape::{Shape, Sphere};
 
-#[cfg_attr(test, derive(Clone, Debug))]
+#[derive(Clone)]
+#[cfg_attr(test, derive(Debug))]
 pub struct Intersection {
     pub t: f64,
     pub object: Rc<dyn Shape>,
@@ -15,64 +16,22 @@ impl Intersection {
     }
 }
 
-#[cfg_attr(test, derive(Debug))]
-pub struct IntersectionList {
-    objects: Vec<Intersection>,
+pub fn hit(xs: &mut IntersectionList) -> Option<&Intersection> {
+    sort(xs);
+    xs.iter().find(|&x| x.t >= 0.)
 }
 
-impl IntersectionList {
-    pub fn empty() -> Self {
-        Self {
-            objects: Vec::new(),
-        }
-    }
-
-    #[cfg(test)]
-    pub fn new(mut intersections: Vec<Intersection>) -> Self {
-        IntersectionList::sort(&mut intersections);
-        Self {
-            objects: intersections,
-        }
-    }
-
-    #[cfg(test)]
-    pub fn len(&self) -> usize {
-        self.objects.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.objects.is_empty()
-    }
-
-    pub fn hit(&self) -> Option<&Intersection> {
-        self.objects.iter().find(|&x| x.t >= 0.)
-    }
-
-    pub fn push(&mut self, x: Intersection) {
-        self.objects.push(x);
-    }
-
-    pub fn extend(&mut self, xs: Self) {
-        self.objects.extend(xs.objects);
-        IntersectionList::sort(&mut self.objects);
-    }
-
-    fn sort(xs: &mut Vec<Intersection>) {
-        xs.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
-    }
+pub fn sort(xs: &mut IntersectionList) {
+    xs.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
 }
 
-impl Index<usize> for IntersectionList {
-    type Output = Intersection;
-
-    fn index(&self, i: usize) -> &Self::Output {
-        &self.objects[i]
-    }
-}
+pub type IntersectionList = Vec<Intersection>;
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    use crate::intersection;
 
     impl PartialEq<Intersection> for Intersection {
         fn eq(&self, rhs: &Self) -> bool {
@@ -91,7 +50,7 @@ mod test {
         let i1 = Intersection::new(1., s.clone());
         let i2 = Intersection::new(2., s.clone());
 
-        let xs = IntersectionList::new(vec![i1, i2]);
+        let xs = vec![i1, i2];
 
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 1.);
@@ -104,24 +63,24 @@ mod test {
         let s = Rc::new(Sphere::new());
         let i1 = Intersection::new(1., s.clone());
         let i2 = Intersection::new(2., s.clone());
-        let xs = IntersectionList::new(vec![i2, i1.clone()]);
-        let i = xs.hit().unwrap();
+        let mut xs = vec![i2, i1.clone()];
+        let i = intersection::hit(&mut xs).unwrap();
         assert_eq!(*i, i1);
 
         // the hit, when some intersections have a negative t
         let s = Rc::new(Sphere::new());
         let i1 = Intersection::new(-1., s.clone());
         let i2 = Intersection::new(1., s.clone());
-        let xs = IntersectionList::new(vec![i2.clone(), i1]);
-        let i = xs.hit().unwrap();
+        let mut xs = vec![i2.clone(), i1];
+        let i = intersection::hit(&mut xs).unwrap();
         assert_eq!(*i, i2);
 
         // the hit, when all intersections have a negative t
         let s = Rc::new(Sphere::new());
         let i1 = Intersection::new(-2., s.clone());
         let i2 = Intersection::new(-1., s.clone());
-        let xs = IntersectionList::new(vec![i2, i1]);
-        let i = xs.hit();
+        let mut xs = vec![i2, i1];
+        let i = intersection::hit(&mut xs);
         assert!(i.is_none());
 
         // the hit, always the lowest non-negative intersection
@@ -130,8 +89,8 @@ mod test {
         let i2 = Intersection::new(7., s.clone());
         let i3 = Intersection::new(-3., s.clone());
         let i4 = Intersection::new(2., s.clone());
-        let xs = IntersectionList::new(vec![i1, i2, i3, i4.clone()]);
-        let i = xs.hit().unwrap();
+        let mut xs = vec![i1, i2, i3, i4.clone()];
+        let i = intersection::hit(&mut xs).unwrap();
         assert_eq!(*i, i4);
     }
 }

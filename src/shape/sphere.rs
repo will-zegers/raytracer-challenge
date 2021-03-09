@@ -29,6 +29,19 @@ impl Sphere {
         }
     }
 
+    pub fn glass() -> Self {
+        let mut m = Material::default();
+        m.transparency = 1.0;
+        m.refractive_index = 1.5;
+        Self {
+            transform: Matrix::eye(4),
+            inv_transform: Matrix::eye(4),
+            transpose_inv: Matrix::eye(4),
+            center: Point::new(0., 0., 0.),
+            material: m,
+        }
+    }
+
     pub fn set_transform(mut self, t: Matrix) -> Self {
         self.inv_transform = t.inverse();
         self.transpose_inv = self.inv_transform.clone().transpose();
@@ -166,5 +179,13 @@ mod test {
         m.ambient = 1.;
         s.material = Material::default();
         assert_eq!(s.material, Material::default());
+    }
+
+    #[test]
+    fn glass() {
+        let s = Sphere::glass();
+        assert_eq!(s.transform, Matrix::eye(4));
+        assert_eq!(s.material.transparency, 1.0);
+        assert_eq!(s.material.refractive_index, 1.5);
     }
 }
