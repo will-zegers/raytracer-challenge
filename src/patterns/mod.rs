@@ -15,3 +15,8 @@ pub use solid::Solid;
 
 mod stripe;
 pub use stripe::Stripe;
+
+#[cfg(test)]
+mod test_pattern;
+#[cfg(test)]
+pub use test_pattern::TestPattern;

@@ -55,12 +55,15 @@ impl Shape for Plane {
     fn transform(&self) -> &Matrix {
         &self.transform
     }
+
     fn inverse_transform(&self) -> &Matrix {
         &self.inv_transform
     }
+
     fn transpose_inverse(&self) -> &Matrix {
         &self.transpose_inv
     }
+
     fn material(&self) -> &Material {
         &self.material
     }

@@ -212,8 +212,7 @@ mod test {
     fn under_point() {
         // the under point is the offset below the surface
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let s = Sphere::glass()
-            .set_transform(Matrix::translation(0., 0., 1.));
+        let s = Sphere::glass().set_transform(Matrix::translation(0., 0., 1.));
         let s = Rc::new(s);
         let i = Intersection::new(5., s);
         let xs = vec![i.clone()];

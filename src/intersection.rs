@@ -16,8 +16,7 @@ impl Intersection {
     }
 }
 
-pub fn hit(xs: &mut IntersectionList) -> Option<&Intersection> {
-    sort(xs);
+pub fn hit(xs: &IntersectionList) -> Option<&Intersection> {
     xs.iter().find(|&x| x.t >= 0.)
 }
 
@@ -64,6 +63,7 @@ mod test {
         let i1 = Intersection::new(1., s.clone());
         let i2 = Intersection::new(2., s.clone());
         let mut xs = vec![i2, i1.clone()];
+        intersection::sort(&mut xs);
         let i = intersection::hit(&mut xs).unwrap();
         assert_eq!(*i, i1);
 
@@ -72,6 +72,7 @@ mod test {
         let i1 = Intersection::new(-1., s.clone());
         let i2 = Intersection::new(1., s.clone());
         let mut xs = vec![i2.clone(), i1];
+        intersection::sort(&mut xs);
         let i = intersection::hit(&mut xs).unwrap();
         assert_eq!(*i, i2);
 
@@ -80,6 +81,7 @@ mod test {
         let i1 = Intersection::new(-2., s.clone());
         let i2 = Intersection::new(-1., s.clone());
         let mut xs = vec![i2, i1];
+        intersection::sort(&mut xs);
         let i = intersection::hit(&mut xs);
         assert!(i.is_none());
 
@@ -90,6 +92,7 @@ mod test {
         let i3 = Intersection::new(-3., s.clone());
         let i4 = Intersection::new(2., s.clone());
         let mut xs = vec![i1, i2, i3, i4.clone()];
+        intersection::sort(&mut xs);
         let i = intersection::hit(&mut xs).unwrap();
         assert_eq!(*i, i4);
     }

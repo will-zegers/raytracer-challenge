@@ -5,7 +5,6 @@ use crate::canvas::Canvas;
 use crate::color;
 use crate::color::Color;
 use crate::hit_record::HitRecord;
-use crate::{intersection,intersection::{Intersection,IntersectionList}};
 use crate::light;
 use crate::light::PointLight;
 use crate::material::Material;
@@ -14,6 +13,11 @@ use crate::patterns::Solid;
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::shape::{Shape, Sphere};
+use crate::vector::Vector;
+use crate::{
+    intersection,
+    intersection::{Intersection, IntersectionList},
+};
 
 pub struct World {
     objects: Vec<Rc<dyn Shape>>,
@@ -77,15 +81,21 @@ impl World {
             self.is_shadowed(&rec.over_point),
         );
         let reflected = self.reflected_color(rec, remaining);
+        let refracted = self.refracted_color(rec, remaining);
 
-        surface + reflected
+        surface + reflected + refracted
     }
 
     fn color_at(&self, r: &Ray, remaining: i32) -> Color {
         let mut xs = self.intersects(r);
-        return match intersection::hit(&mut xs) {
+        intersection::sort(&mut xs);
+        return match intersection::hit(&xs) {
             Some(x) => {
-                let rec = HitRecord::new(intersection::hit(&mut xs).unwrap(), r, &mut IntersectionList::new());
+                let rec = HitRecord::new(
+                    x,
+                    r,
+                    &xs
+                );
                 self.shade(&rec, remaining)
             }
             None => Color::new(0., 0., 0.),
@@ -120,7 +130,7 @@ impl World {
 
     fn reflected_color(&self, rec: &HitRecord, remaining: i32) -> Color {
         if remaining == 0 {
-            return color::BLACK
+            return color::BLACK;
         }
         let r = Ray::new(rec.over_point, rec.reflectv);
         self.color_at(&r, remaining - 1) * rec.object.material().reflective
@@ -130,7 +140,15 @@ impl World {
         if remaining == 0 || rec.object.material().transparency == 0. {
             return color::BLACK;
         }
-        color::WHITE
+
+        // create the refracted ray
+        return match Vector::refract(&rec.normalv, &rec.eyev, rec.n1 / rec.n2) {
+            Some(direction) => {
+                let refract_ray = Ray::new(rec.under_point, direction);
+                self.color_at(&refract_ray, remaining - 1) * rec.object.material().transparency
+            }
+            None => color::BLACK,
+        };
     }
 }
 
@@ -141,6 +159,7 @@ mod test {
     use super::*;
 
     use crate::intersection::Intersection;
+    use crate::patterns::TestPattern;
     use crate::point::Point;
     use crate::shape::Plane;
     use crate::vector::Vector;
@@ -449,26 +468,19 @@ mod test {
         let w = World::default();
         let s = w.objects.first().unwrap();
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let xs = vec![
-            Intersection::new(4., s.clone()),
-            Intersection::new(6., s.clone()),
-        ];
+        let xs = w.intersects(&r);
 
         let rec = HitRecord::new(&xs[0], &r, &xs);
         assert_eq!(w.refracted_color(&rec, 5), color::BLACK);
 
         // the refracted color at maximum recursive depth
-        let m1 = Material::new(
-            Solid::new(Color::new(0.8, 1.0, 0.6)),
-            0.1,
-            0.7,
-            0.2,
-            200.,
-            0.,
-            1.,
-            1.5,
-        );
+        let mut m1 = Material::default();
+        m1.diffuse = 0.7;
+        m1.specular = 0.2;
+        m1.transparency = 1.;
+        m1.refractive_index = 1.5;
         let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+
         let s2 = Rc::new(
             Sphere::new()
                 .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
@@ -476,11 +488,64 @@ mod test {
         );
         let w = World::new(vec![s1, s2], PointLight::default());
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let xs = vec![
-            Intersection::new(4., (*w.objects.first().unwrap()).clone()),
-            Intersection::new(6., (*w.objects.first().unwrap()).clone()),
-        ];
+        let shape = w.objects.first().unwrap();
+        let xs = w.intersects(&r);
         let rec = HitRecord::new(&xs[0], &r, &xs);
         assert_eq!(w.refracted_color(&rec, 0), color::BLACK);
+
+        // the refracted color under total internal reflection
+        let r = Ray::new(
+            Point::new(0., 0., f64::sqrt(2.) / 2.),
+            Vector::new(0., 1., 0.),
+        );
+        let xs = w.intersects(&r);
+        let rec = HitRecord::new(&xs[1], &r, &xs);
+        assert_eq!(w.refracted_color(&rec, 5), color::BLACK);
+
+        // the refracted color with a refracted ray
+        let tf1 = Matrix::eye(4);
+        let mut m1 = Material::default();
+        m1.pattern = Box::new(TestPattern::new());
+        m1.ambient = 1.;
+        m1.specular = 0.2;
+        let s1 = Rc::new(Sphere::new().set_transform(tf1).set_material(m1));
+
+        let tf2 = Matrix::scaling(0.5, 0.5, 0.5);
+        let mut m2 = Material::default();
+        m2.transparency = 1.;
+        m2.refractive_index = 1.5;
+        let s2 = Rc::new(Sphere::new().set_transform(tf2).set_material(m2));
+        let w = World::new(vec![s1.clone(), s2.clone()], PointLight::default());
+
+        let r = Ray::new(Point::new(0., 0., 0.1), Vector::new(0., 1., 0.));
+        let xs = w.intersects(&r);
+        let rec = HitRecord::new(&xs[2], &r, &xs);
+        assert_eq!(
+            w.refracted_color(&rec, 5),
+            Color::new(0.0, 0.998884703, 0.047215978)
+        );
+
+        // shade with a transparent material
+        let mut w = World::default();
+        let mut m_floor = Material::default();
+        m_floor.transparency = 0.5;
+        m_floor.refractive_index = 1.5;
+        let floor = Plane::default()
+            .set_transform(Matrix::translation(0., -1., 0.))
+            .set_material(m_floor);
+        w.add(Rc::new(floor));
+
+        let mut m_ball = Material::default();
+        m_ball.pattern = Box::new(Solid::new(Color::new(1., 0., 0.)));
+        m_ball.ambient = 0.5;
+        let ball = Sphere::new()
+            .set_transform(Matrix::translation(0., -3.5, -0.5))
+            .set_material(m_ball);
+        w.add(Rc::new(ball));
+
+        let r = Ray::new(Point::new(0., 0., -3.), Vector::new(0., -f64::sqrt(2.) / 2., f64::sqrt(2.) / 2.));
+        let xs = w.intersects(&r);
+        let rec = HitRecord::new(&xs[0], &r, &xs);
+        assert_eq!(w.shade(&rec, 5), Color::new(0.936425388, 0.686425388, 0.686425388));
     }
 }

@@ -41,8 +41,26 @@ impl Vector {
         (1. / self.length()) * self
     }
 
-    pub fn reflect(self, normal: &Self) -> Self {
-        self - 2. * Vector::dot(&self, normal) * *normal
+    pub fn reflect(self, normalv: &Self) -> Self {
+        self - 2. * Vector::dot(&self, normalv) * *normalv
+    }
+
+    pub fn refract(normalv: &Self, eyev: &Self, n_ratio: f64) -> Option<Self> {
+        let cos_i = Vector::dot(eyev, normalv);
+        let sin2_t = n_ratio * n_ratio * (1. - cos_i * cos_i);
+
+        // check for total internal refraction
+        if sin2_t > 1. {
+            return None;
+        }
+
+        // find cos(theta_t) via trig identity
+        let cos_t = f64::sqrt(1. - sin2_t);
+
+        // # compute the direction of the refracted ray
+        let direction = *normalv * (n_ratio * cos_i - cos_t) - *eyev * n_ratio;
+
+        Some(direction)
     }
 }
 
