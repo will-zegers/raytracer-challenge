@@ -82,6 +82,27 @@ impl HitRecord {
             n2,
         }
     }
+
+    pub fn schlick(&self) -> f64 {
+        // find the cosine of the angle between the eye and normal vectors
+        let mut cos = Vector::dot(&self.eyev, &self.normalv);
+
+        if self.n1 > self.n2 {
+            let n = self.n1 / self.n2;
+            let sin2_t = n * n * (1. - cos * cos);
+            if sin2_t > 1. {
+                return 1.; // total internal reflection
+            }
+
+            let cos_t = (1. - sin2_t).sqrt();
+            cos = cos_t;
+        }
+
+        let mut r0 = (self.n1 - self.n2) / (self.n1 + self.n2);
+        r0 *= r0; // r0^2
+
+        r0 + (1. - r0) * (1. - cos).powi(5)
+    }
 }
 
 #[cfg(test)]
@@ -221,5 +242,53 @@ mod test {
 
         assert!(rec.under_point.z > EPSILON / 2.);
         assert!(rec.point.z < rec.under_point.z);
+    }
+
+    mod schlick {
+        use super::*;
+
+        use crate::light::PointLight;
+        use crate::world::World;
+
+        const TOL: f64 = 1e-9;
+
+        #[test]
+        fn total_internal_refraction() {
+            let shape = Rc::new(Sphere::glass());
+            let r = Ray::new(
+                Point::new(0., 0., f64::sqrt(2.) / 2.),
+                Vector::new(0., 1., 0.),
+            );
+            let mut xs: Vec<Intersection> = Vec::new();
+            for t in shape.local_intersect(r) {
+                xs.push(Intersection::new(t, shape.clone()));
+            }
+            let rec = HitRecord::new(&xs[1], &r, &xs);
+            assert_eq!(rec.schlick(), 1.);
+        }
+
+        #[test]
+        fn perpendicular_viewing_angle() {
+            let shape = Rc::new(Sphere::glass());
+            let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 0.));
+            let mut xs: Vec<Intersection> = Vec::new();
+            for t in shape.local_intersect(r) {
+                xs.push(Intersection::new(t, shape.clone()));
+            }
+            let rec = HitRecord::new(&xs[1], &r, &xs);
+            assert!((rec.schlick() - 0.04).abs() < TOL);
+        }
+
+        #[test]
+        fn small_angle_and_n2_gt_n1() {
+            let shape = Rc::new(Sphere::glass());
+            let r = Ray::new(Point::new(0., 0.99, -2.), Vector::new(0., 0., 1.));
+            let mut xs: Vec<Intersection> = Vec::new();
+            for t in shape.local_intersect(r) {
+                xs.push(Intersection::new(t, shape.clone()));
+            }
+            let rec = HitRecord::new(&xs[0], &r, &xs);
+            assert!((rec.schlick() - 0.488814383).abs() < TOL);
+        }
     }
 }

@@ -8,7 +8,6 @@ use crate::ray::Ray;
 use crate::vector::Vector;
 
 pub trait Shape {
-    fn transform(&self) -> &Matrix;
     fn inverse_transform(&self) -> &Matrix;
     fn transpose_inverse(&self) -> &Matrix;
     fn material(&self) -> &Material;
@@ -28,6 +27,6 @@ pub trait Shape {
 #[cfg(test)]
 impl Debug for dyn Shape {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?} {:?}", self.transform(), self.material())
+        write!(f, "{:?}", self.material())
     }
 }

@@ -12,18 +12,16 @@ use crate::vector::Vector;
 pub struct Sphere {
     material: Material,
 
-    transform: Matrix,
-    inv_transform: Matrix,
-    transpose_inv: Matrix,
+    inv_tf: Matrix,
+    xpose_inv_tf: Matrix,
     center: Point,
 }
 
 impl Sphere {
     pub fn new() -> Self {
         Self {
-            transform: Matrix::eye(4),
-            inv_transform: Matrix::eye(4),
-            transpose_inv: Matrix::eye(4),
+            inv_tf: Matrix::eye(4),
+            xpose_inv_tf: Matrix::eye(4),
             center: Point::new(0., 0., 0.),
             material: Material::default(),
         }
@@ -34,18 +32,16 @@ impl Sphere {
         m.transparency = 1.0;
         m.refractive_index = 1.5;
         Self {
-            transform: Matrix::eye(4),
-            inv_transform: Matrix::eye(4),
-            transpose_inv: Matrix::eye(4),
+            inv_tf: Matrix::eye(4),
+            xpose_inv_tf: Matrix::eye(4),
             center: Point::new(0., 0., 0.),
             material: m,
         }
     }
 
     pub fn set_transform(mut self, t: Matrix) -> Self {
-        self.inv_transform = t.inverse();
-        self.transpose_inv = self.inv_transform.clone().transpose();
-        self.transform = t;
+        self.inv_tf = t.inverse();
+        self.xpose_inv_tf = self.inv_tf.clone().transpose();
 
         self
     }
@@ -58,18 +54,13 @@ impl Sphere {
 
 impl Shape for Sphere {
     #[inline(always)]
-    fn transform(&self) -> &Matrix {
-        &self.transform
-    }
-
-    #[inline(always)]
     fn inverse_transform(&self) -> &Matrix {
-        &self.inv_transform
+        &self.inv_tf
     }
 
     #[inline(always)]
     fn transpose_inverse(&self) -> &Matrix {
-        &self.transpose_inv
+        &self.xpose_inv_tf
     }
 
     #[inline(always)]
@@ -114,7 +105,6 @@ mod test {
     fn transform() {
         let t = Matrix::translation(2., 3., 4.);
         let s = Sphere::new().set_transform(t.clone());
-        assert_eq!(*s.transform(), t.clone());
         assert_eq!(*s.inverse_transform(), t.inverse());
     }
 
@@ -184,7 +174,6 @@ mod test {
     #[test]
     fn glass() {
         let s = Sphere::glass();
-        assert_eq!(s.transform, Matrix::eye(4));
         assert_eq!(s.material.transparency, 1.0);
         assert_eq!(s.material.refractive_index, 1.5);
     }

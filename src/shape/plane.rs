@@ -9,18 +9,16 @@ use crate::vector::Vector;
 pub struct Plane {
     material: Material,
 
-    transform: Matrix,
-    inv_transform: Matrix,
-    transpose_inv: Matrix,
+    inv_tf: Matrix,
+    xpose_inv_tf: Matrix,
 }
 
 impl Plane {
     pub fn new(transform: Matrix, material: Material) -> Self {
-        let inv_transform = transform.inverse();
+        let inv_tf = transform.inverse();
         Self {
-            transform,
-            inv_transform: inv_transform.clone(),
-            transpose_inv: inv_transform.transpose(),
+            inv_tf: inv_tf.clone(),
+            xpose_inv_tf: inv_tf.transpose(),
             material,
         }
     }
@@ -28,9 +26,8 @@ impl Plane {
     #[cfg(test)]
     pub fn default() -> Self {
         Self {
-            transform: Matrix::eye(4),
-            inv_transform: Matrix::eye(4),
-            transpose_inv: Matrix::eye(4),
+            inv_tf: Matrix::eye(4),
+            xpose_inv_tf: Matrix::eye(4),
             material: Material::default(),
         }
     }
@@ -41,27 +38,22 @@ impl Plane {
     }
 
     pub fn set_transform(mut self, t: Matrix) -> Self {
-        let inv_transform = t.inverse();
+        let inv_tf = t.inverse();
 
-        self.transform = t;
-        self.inv_transform = inv_transform.clone();
-        self.transpose_inv = inv_transform.transpose();
+        self.inv_tf = inv_tf.clone();
+        self.xpose_inv_tf = inv_tf.transpose();
 
         self
     }
 }
 
 impl Shape for Plane {
-    fn transform(&self) -> &Matrix {
-        &self.transform
-    }
-
     fn inverse_transform(&self) -> &Matrix {
-        &self.inv_transform
+        &self.inv_tf
     }
 
     fn transpose_inverse(&self) -> &Matrix {
-        &self.transpose_inv
+        &self.xpose_inv_tf
     }
 
     fn material(&self) -> &Material {

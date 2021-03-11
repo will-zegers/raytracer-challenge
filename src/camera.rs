@@ -104,59 +104,74 @@ mod test {
         f64::abs(a - b) < TOL
     }
 
-    #[test]
-    fn view_transform() {
-        // the trasformation matrix for the default orientation
-        let from = Point::new(0., 0., 0.);
-        let to = Point::new(0., 0., -1.);
-        let up = Vector::new(0., 1., 0.);
-        let t = super::view_transform(from, to, up);
-        assert_eq!(t, Matrix::eye(4));
+    #[cfg(test)]
+    mod view_transform {
 
-        // a ViewTransform looking in the positive z direction
-        let from = Point::new(0., 0., 0.);
-        let to = Point::new(0., 0., 1.);
-        let up = Vector::new(0., 1., 0.);
-        let t = super::view_transform(from, to, up);
-        assert_eq!(t, Matrix::scaling(-1., 1., -1.));
+        use super::*;
 
-        // the view transformation moves the world
-        let from = Point::new(0., 0., 8.);
-        let to = Point::new(0., 0., 0.);
-        let up = Vector::new(0., 1., 0.);
-        let t = super::view_transform(from, to, up);
-        assert_eq!(t, Matrix::translation(0., 0., -8.));
+        #[test]
+        fn default_orientation() {
+            // the trasformation matrix for the default orientation
+            let from = Point::new(0., 0., 0.);
+            let to = Point::new(0., 0., -1.);
+            let up = Vector::new(0., 1., 0.);
+            let t = super::view_transform(from, to, up);
+            assert_eq!(t, Matrix::eye(4));
+        }
 
-        // an arbitrary view transformation
-        let from = Point::new(1., 3., 2.);
-        let to = Point::new(4., -2., 8.);
-        let up = Vector::new(1., 1., 0.);
-        let t = super::view_transform(from, to, up);
-        assert_eq!(
-            t,
-            Matrix::new(
-                4,
-                4,
-                vec![
-                    -0.507092552,
-                    0.507092552,
-                    0.676123403,
-                    -2.366431913,
-                    0.767715933,
-                    0.606091526,
-                    0.121218305,
-                    -2.828427124,
-                    -0.358568582,
-                    0.597614304,
-                    -0.717137165,
-                    0.,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0,
-                ]
+        #[test]
+        fn looking_in_the_positive_z_direction() {
+            // a ViewTransform looking in the positive z direction
+            let from = Point::new(0., 0., 0.);
+            let to = Point::new(0., 0., 1.);
+            let up = Vector::new(0., 1., 0.);
+            let t = super::view_transform(from, to, up);
+            assert_eq!(t, Matrix::scaling(-1., 1., -1.));
+        }
+
+        #[test]
+        fn view_transform_moves_the_world() {
+            // the view transformation moves the world
+            let from = Point::new(0., 0., 8.);
+            let to = Point::new(0., 0., 0.);
+            let up = Vector::new(0., 1., 0.);
+            let t = super::view_transform(from, to, up);
+            assert_eq!(t, Matrix::translation(0., 0., -8.));
+        }
+
+        #[test]
+        fn arbitrary_view_transformation() {
+            // an arbitrary view transformation
+            let from = Point::new(1., 3., 2.);
+            let to = Point::new(4., -2., 8.);
+            let up = Vector::new(1., 1., 0.);
+            let t = super::view_transform(from, to, up);
+            assert_eq!(
+                t,
+                Matrix::new(
+                    4,
+                    4,
+                    vec![
+                        -0.507092552,
+                        0.507092552,
+                        0.676123403,
+                        -2.366431913,
+                        0.767715933,
+                        0.606091526,
+                        0.121218305,
+                        -2.828427124,
+                        -0.358568582,
+                        0.597614304,
+                        -0.717137165,
+                        0.,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                    ]
+                )
             )
-        )
+        }
     }
 
     #[test]

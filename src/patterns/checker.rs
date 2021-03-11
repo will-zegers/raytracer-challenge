@@ -44,29 +44,41 @@ impl Pattern for Checker {
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
-
     use super::*;
 
-    use crate::color::{BLACK, WHITE};
+    mod color_at {
+        use super::*;
+        use crate::color::{BLACK, WHITE};
 
-    #[test]
-    fn color_at() {
-        let pattern = Checker::new(WHITE, BLACK);
+        fn get_pattern() -> Checker {
+            Checker::new(WHITE, BLACK)
+        }
 
-        // checkers should repeat in x
-        assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), WHITE);
-        assert_eq!(pattern.color_at(&Point::new(0.99, 0., 0.)), WHITE);
-        assert_eq!(pattern.color_at(&Point::new(1.01, 0., 0.)), BLACK);
+        #[test]
+        fn checkers_should_repeat_in_x() {
+            let pattern = get_pattern();
 
-        // checkers should repeat in y
-        assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), WHITE);
-        assert_eq!(pattern.color_at(&Point::new(0., 0.99, 0.)), WHITE);
-        assert_eq!(pattern.color_at(&Point::new(0., 1.01, 0.)), BLACK);
+            assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), WHITE);
+            assert_eq!(pattern.color_at(&Point::new(0.99, 0., 0.)), WHITE);
+            assert_eq!(pattern.color_at(&Point::new(1.01, 0., 0.)), BLACK);
+        }
 
-        // checkers should repeat in z
-        assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), WHITE);
-        assert_eq!(pattern.color_at(&Point::new(0., 0., 0.99)), WHITE);
-        assert_eq!(pattern.color_at(&Point::new(0., 0., 1.01)), BLACK);
+        #[test]
+        fn checkers_should_repeat_in_y() {
+            let pattern = get_pattern();
+
+            assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), WHITE);
+            assert_eq!(pattern.color_at(&Point::new(0., 0.99, 0.)), WHITE);
+            assert_eq!(pattern.color_at(&Point::new(0., 1.01, 0.)), BLACK);
+        }
+
+        #[test]
+        fn checkers_should_repeat_in_z() {
+            let pattern = get_pattern();
+
+            assert_eq!(pattern.color_at(&Point::new(0., 0., 0.)), WHITE);
+            assert_eq!(pattern.color_at(&Point::new(0., 0., 0.99)), WHITE);
+            assert_eq!(pattern.color_at(&Point::new(0., 0., 1.01)), BLACK);
+        }
     }
 }
