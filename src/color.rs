@@ -12,6 +12,16 @@ pub const BLACK: Color = Color {
     g: 0.,
     b: 0.,
 };
+pub const DBROWN: Color = Color {
+    r: 0.2,
+    g: 0.2,
+    b: 0.1,
+};
+pub const LBROWN: Color = Color {
+    r: 0.3,
+    g: 0.3,
+    b: 0.15,
+};
 
 #[derive(Clone, Copy)]
 #[cfg_attr(test, derive(Debug))]

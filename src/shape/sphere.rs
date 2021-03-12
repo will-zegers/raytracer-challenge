@@ -39,14 +39,14 @@ impl Sphere {
         }
     }
 
-    pub fn set_transform(mut self, t: Matrix) -> Self {
+    pub fn with_transform(mut self, t: Matrix) -> Self {
         self.inv_tf = t.inverse();
         self.xpose_inv_tf = self.inv_tf.clone().transpose();
 
         self
     }
 
-    pub fn set_material(mut self, m: Material) -> Self {
+    pub fn with_material(mut self, m: Material) -> Self {
         self.material = m;
         self
     }
@@ -104,7 +104,7 @@ mod test {
     #[test]
     fn transform() {
         let t = Matrix::translation(2., 3., 4.);
-        let s = Sphere::new().set_transform(t.clone());
+        let s = Sphere::new().with_transform(t.clone());
         assert_eq!(*s.inverse_transform(), t.inverse());
     }
 
@@ -147,13 +147,13 @@ mod test {
         assert_eq!(n, n.normalize());
 
         // computing the normal of a translated sphere
-        let s = Sphere::new().set_transform(Matrix::translation(0., 1., 0.));
+        let s = Sphere::new().with_transform(Matrix::translation(0., 1., 0.));
         let n = s.normal_at(Point::new(0., 1.70711, -0.70711));
         assert_eq!(n, Vector::new(0., 0.707106781, -0.707106781));
 
         // computing the normal of a transformed sphere
         let t = Matrix::scaling(1., 0.5, 1.) * Matrix::rotation(Axis::Z, PI / 5.);
-        let s = Sphere::new().set_transform(t);
+        let s = Sphere::new().with_transform(t);
         let n = s.normal_at(Point::new(0., f64::sqrt(2.) / 2., -f64::sqrt(2.) / 2.));
         assert_eq!(n, Vector::new(0., 0.970142500, -0.242535625));
     }

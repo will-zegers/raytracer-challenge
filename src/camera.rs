@@ -32,8 +32,7 @@ pub struct Camera {
     pub vsize: usize,
     pub pixel_size: f64,
 
-    transform: Matrix,
-    transform_inv: Matrix,
+    inv_tf: Matrix,
     half_width: f64,
     half_height: f64,
 }
@@ -57,16 +56,14 @@ impl Camera {
             hsize,
             vsize,
             pixel_size,
-            transform: Matrix::eye(4),
-            transform_inv: Matrix::eye(4),
+            inv_tf: Matrix::eye(4),
             half_width,
             half_height,
         }
     }
 
-    pub fn set_transform(mut self, t: Matrix) -> Self {
-        self.transform_inv = t.inverse();
-        self.transform = t;
+    pub fn with_transform(mut self, t: Matrix) -> Self {
+        self.inv_tf = t.inverse();
 
         self
     }
@@ -82,8 +79,8 @@ impl Camera {
 
         // using the camera matrix, tranform the canvas point and the origin,
         // and then compute the ray's direction vector
-        let pixel = &self.transform_inv * Point::new(world_x, world_y, -1.);
-        let origin = &self.transform_inv * Point::new(0., 0., 0.);
+        let pixel = &self.inv_tf * Point::new(world_x, world_y, -1.);
+        let origin = &self.inv_tf * Point::new(0., 0., 0.);
         let direction = (pixel - origin).normalize();
 
         Ray::new(origin, direction)
@@ -183,7 +180,7 @@ mod test {
 
         assert_eq!(c.hsize, hsize);
         assert_eq!(c.vsize, vsize);
-        assert_eq!(c.transform, Matrix::eye(4));
+        assert_eq!(c.inv_tf, Matrix::eye(4));
     }
 
     #[test]
@@ -214,7 +211,7 @@ mod test {
 
         // constructing a ray when the camera is transformed
         let c = Camera::new(201, 101, PI / 2.)
-            .set_transform(Matrix::rotation(Axis::Y, PI / 4.) * Matrix::translation(0., -2., 5.));
+            .with_transform(Matrix::rotation(Axis::Y, PI / 4.) * Matrix::translation(0., -2., 5.));
         let r = c.pixel_to_ray(100, 50);
         assert_eq!(r.origin, Point::new(0., 2., -5.));
         assert_eq!(

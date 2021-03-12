@@ -30,11 +30,7 @@ impl Matrix {
     pub fn eye(n: usize) -> Self {
         let mut elements = vec![0.; n * n];
         for i in 0..n {
-            for j in 0..n {
-                if i == j {
-                    elements[i * n + j] = 1.
-                }
-            }
+            elements[i * (n + 1)] = 1.;
         }
         Self { m: n, n, elements }
     }

@@ -18,7 +18,7 @@ impl Solid {
         }
     }
 
-    pub fn set_transform(mut self, tf: Matrix) -> Self {
+    pub fn with_transform(mut self, tf: Matrix) -> Self {
         self.inv_tf = tf.inverse();
         self
     }

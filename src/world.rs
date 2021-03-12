@@ -42,11 +42,11 @@ impl World {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
         let s2 = Rc::new(
             Sphere::new()
-                .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
-                .set_material(Material::default()),
+                .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+                .with_material(Material::default()),
         );
 
         Self {
@@ -179,11 +179,11 @@ mod test {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
         let s2 = Rc::new(
             Sphere::new()
-                .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
-                .set_material(Material::default()),
+                .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+                .with_material(Material::default()),
         );
 
         let w = World::default();
@@ -237,8 +237,8 @@ mod test {
             let t2 = Matrix::translation(0., 0., 10.);
             let s2 = Rc::new(
                 Sphere::new()
-                    .set_transform(t2)
-                    .set_material(Material::default()),
+                    .with_transform(t2)
+                    .with_material(Material::default()),
             );
             let light = PointLight::new(Point::new(0., 0., -10.), Color::new(1., 1., 1.));
             let w = World::new(vec![s1, s2], light);
@@ -265,20 +265,20 @@ mod test {
                 0.,
                 1.,
             );
-            let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+            let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
 
             let s2 = Rc::new(
                 Sphere::new()
-                    .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
-                    .set_material(Material::default()),
+                    .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+                    .with_material(Material::default()),
             );
 
             let mut mat_p1 = Material::default();
             mat_p1.reflective = 0.5;
             let p1 = Rc::new(
                 Plane::default()
-                    .set_transform(Matrix::translation(0., -1., 0.))
-                    .set_material(mat_p1),
+                    .with_transform(Matrix::translation(0., -1., 0.))
+                    .with_material(mat_p1),
             );
 
             let w = World::new(vec![s1, s2, p1], light);
@@ -301,16 +301,16 @@ mod test {
             m_floor.transparency = 0.5;
             m_floor.refractive_index = 1.5;
             let floor = Plane::default()
-                .set_transform(Matrix::translation(0., -1., 0.))
-                .set_material(m_floor);
+                .with_transform(Matrix::translation(0., -1., 0.))
+                .with_material(m_floor);
             w.add(Rc::new(floor));
 
             let mut m_ball = Material::default();
             m_ball.pattern = Box::new(Solid::new(Color::new(1., 0., 0.)));
             m_ball.ambient = 0.5;
             let ball = Sphere::new()
-                .set_transform(Matrix::translation(0., -3.5, -0.5))
-                .set_material(m_ball);
+                .with_transform(Matrix::translation(0., -3.5, -0.5))
+                .with_material(m_ball);
             w.add(Rc::new(ball));
 
             let r = Ray::new(
@@ -338,16 +338,16 @@ mod test {
             m_floor.transparency = 0.5;
             m_floor.refractive_index = 1.5;
             let floor = Plane::default()
-                .set_material(m_floor)
-                .set_transform(Matrix::translation(0., -1., 0.));
+                .with_material(m_floor)
+                .with_transform(Matrix::translation(0., -1., 0.));
             w.add(Rc::new(floor));
 
             let mut m_ball = Material::default();
             m_ball.pattern = Box::new(Solid::new(Color::new(1., 0., 0.)));
             m_ball.ambient = 0.5;
             let ball = Sphere::new()
-                .set_transform(Matrix::translation(0., -3.5, -0.5))
-                .set_material(m_ball);
+                .with_transform(Matrix::translation(0., -3.5, -0.5))
+                .with_material(m_ball);
             w.add(Rc::new(ball));
 
             let xs = w.intersects(&r);
@@ -386,7 +386,7 @@ mod test {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
 
         let m2 = Material::new(
             Solid::new(Color::new(1., 1., 1.)),
@@ -400,8 +400,8 @@ mod test {
         );
         let s2 = Rc::new(
             Sphere::new()
-                .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
-                .set_material(m2),
+                .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+                .with_material(m2),
         );
 
         let w = World::new(vec![s1, s2], light);
@@ -417,16 +417,16 @@ mod test {
         mat_p1.reflective = 1.;
         let p1 = Rc::new(
             Plane::default()
-                .set_transform(Matrix::translation(0., -1., 0.))
-                .set_material(mat_p1),
+                .with_transform(Matrix::translation(0., -1., 0.))
+                .with_material(mat_p1),
         );
 
         let mut mat_p2 = Material::default();
         mat_p2.reflective = 1.;
         let p2 = Rc::new(
             Plane::default()
-                .set_transform(Matrix::translation(0., 1., 0.))
-                .set_material(mat_p2),
+                .with_transform(Matrix::translation(0., 1., 0.))
+                .with_material(mat_p2),
         );
 
         let light = PointLight::default();
@@ -469,7 +469,7 @@ mod test {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
         let m2 = Material::new(
             Solid::new(Color::new(1., 1., 1.)),
             1.,
@@ -482,8 +482,8 @@ mod test {
         );
         let s2 = Rc::new(
             Sphere::new()
-                .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
-                .set_material(Material::default()),
+                .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+                .with_material(Material::default()),
         );
         let mut w = World::new(vec![s1, s2], light);
 
@@ -499,8 +499,8 @@ mod test {
         let mut mat_p1 = Material::default();
         mat_p1.reflective = 0.5;
         let p1 = Plane::default()
-            .set_transform(Matrix::translation(0., -1., 0.))
-            .set_material(mat_p1);
+            .with_transform(Matrix::translation(0., -1., 0.))
+            .with_material(mat_p1);
 
         w.add(Rc::new(p1));
 
@@ -519,8 +519,8 @@ mod test {
         let mut mat_p1 = Material::default();
         mat_p1.reflective = 0.5;
         let p1 = Plane::default()
-            .set_transform(Matrix::translation(0., -1., 0.))
-            .set_material(mat_p1);
+            .with_transform(Matrix::translation(0., -1., 0.))
+            .with_material(mat_p1);
 
         w.add(Rc::new(p1));
 
@@ -558,12 +558,12 @@ mod test {
             m1.specular = 0.2;
             m1.transparency = 1.;
             m1.refractive_index = 1.5;
-            let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+            let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
 
             let s2 = Rc::new(
                 Sphere::new()
-                    .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
-                    .set_material(Material::default()),
+                    .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+                    .with_material(Material::default()),
             );
             let w = World::new(vec![s1, s2], PointLight::default());
 
@@ -581,12 +581,12 @@ mod test {
             m1.specular = 0.2;
             m1.transparency = 1.;
             m1.refractive_index = 1.5;
-            let s1 = Rc::new(Sphere::new().set_transform(Matrix::eye(4)).set_material(m1));
+            let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
 
             let s2 = Rc::new(
                 Sphere::new()
-                    .set_transform(Matrix::scaling(0.5, 0.5, 0.5))
-                    .set_material(Material::default()),
+                    .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+                    .with_material(Material::default()),
             );
             let w = World::new(vec![s1, s2], PointLight::default());
 
@@ -606,13 +606,13 @@ mod test {
             m1.pattern = Box::new(TestPattern::new());
             m1.ambient = 1.;
             m1.specular = 0.2;
-            let s1 = Rc::new(Sphere::new().set_transform(tf1).set_material(m1));
+            let s1 = Rc::new(Sphere::new().with_transform(tf1).with_material(m1));
 
             let tf2 = Matrix::scaling(0.5, 0.5, 0.5);
             let mut m2 = Material::default();
             m2.transparency = 1.;
             m2.refractive_index = 1.5;
-            let s2 = Rc::new(Sphere::new().set_transform(tf2).set_material(m2));
+            let s2 = Rc::new(Sphere::new().with_transform(tf2).with_material(m2));
             let w = World::new(vec![s1.clone(), s2.clone()], PointLight::default());
 
             let r = Ray::new(Point::new(0., 0., 0.1), Vector::new(0., 1., 0.));

@@ -15,7 +15,7 @@ pub struct PointLight {
 }
 
 impl PointLight {
-    #[cfg(test)]
+
     pub fn new(position: Point, intensity: Color) -> Self {
         Self {
             position,
@@ -101,7 +101,7 @@ mod test {
     #[test]
     fn test_lighting() {
         let m = Material::default();
-        let sphere = Rc::new(Sphere::new().set_material(Material::default()));
+        let sphere = Rc::new(Sphere::new().with_material(Material::default()));
         let position = Point::new(0., 0., 0.);
 
         // lighting with the eye between the light and the surface
@@ -137,7 +137,7 @@ mod test {
     #[test]
     fn lighting_with_shadow() {
         let m = Material::default();
-        let sphere = Rc::new(Sphere::new().set_material(Material::default()));
+        let sphere = Rc::new(Sphere::new().with_material(Material::default()));
         let position = Point::new(0., 0., 0.);
 
         // lighting with the surface in shadow
@@ -153,7 +153,7 @@ mod test {
     #[test]
     fn light_with_pattern() {
         let m = Material::new(Stripe::new(WHITE, BLACK), 1., 0., 0., 200., 0., 0., 1.);
-        let sphere = Rc::new(Sphere::new().set_material(m));
+        let sphere = Rc::new(Sphere::new().with_material(m));
         let eyev = Vector::new(0., 0., -1.);
         let normalv = Vector::new(0., 0., -1.);
         let light = PointLight::new(Point::new(0., 0., -10.), WHITE);

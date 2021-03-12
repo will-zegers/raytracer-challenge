@@ -32,12 +32,12 @@ impl Plane {
         }
     }
 
-    pub fn set_material(mut self, m: Material) -> Self {
+    pub fn with_material(mut self, m: Material) -> Self {
         self.material = m;
         self
     }
 
-    pub fn set_transform(mut self, t: Matrix) -> Self {
+    pub fn with_transform(mut self, t: Matrix) -> Self {
         let inv_tf = t.inverse();
 
         self.inv_tf = inv_tf.clone();

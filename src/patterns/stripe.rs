@@ -20,7 +20,7 @@ impl Stripe {
         }
     }
 
-    pub fn set_transform(mut self, tf: Matrix) -> Self {
+    pub fn with_transform(mut self, tf: Matrix) -> Self {
         self.inv_tf = tf.inverse();
 
         self
@@ -83,7 +83,7 @@ mod test {
     #[test]
     fn stripe_at_object() {
         // stripes with object transformation
-        let object = Sphere::new().set_transform(Matrix::scaling(2., 2., 2.));
+        let object = Sphere::new().with_transform(Matrix::scaling(2., 2., 2.));
         let object = Rc::new(object);
         let pattern: Box<dyn Pattern> = Box::new(Stripe::new(WHITE, BLACK));
         assert_eq!(
@@ -95,16 +95,16 @@ mod test {
         let object = Sphere::new();
         let object = Rc::new(object);
         let tf = Matrix::scaling(2., 2., 2.);
-        let pattern: Box<dyn Pattern> = Box::new(Stripe::new(WHITE, BLACK).set_transform(tf));
+        let pattern: Box<dyn Pattern> = Box::new(Stripe::new(WHITE, BLACK).with_transform(tf));
         assert_eq!(
             pattern.color_at_object(object, &Point::new(1.5, 0., 0.)),
             WHITE
         );
 
-        let object = Sphere::new().set_transform(Matrix::scaling(2., 2., 2.));
+        let object = Sphere::new().with_transform(Matrix::scaling(2., 2., 2.));
         let object = Rc::new(object);
         let pattern: Box<dyn Pattern> =
-            Box::new(Stripe::new(WHITE, BLACK).set_transform(Matrix::translation(0.5, 0., 0.)));
+            Box::new(Stripe::new(WHITE, BLACK).with_transform(Matrix::translation(0.5, 0., 0.)));
         assert_eq!(
             pattern.color_at_object(object, &Point::new(3.5, 0., 0.)),
             BLACK

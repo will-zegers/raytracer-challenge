@@ -120,7 +120,7 @@ mod test {
 
         // intersecting a scaled sphere with a ray
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let s = Sphere::new().set_transform(Matrix::scaling(2., 2., 2.));
+        let s = Sphere::new().with_transform(Matrix::scaling(2., 2., 2.));
         let xs = r.intersects(Rc::new(s));
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 3.);
@@ -128,7 +128,7 @@ mod test {
 
         // intersecting a translated sphere with a ray
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let s = Sphere::new().set_transform(Matrix::translation(5., 0., 0.));
+        let s = Sphere::new().with_transform(Matrix::translation(5., 0., 0.));
         assert!(r.intersects(Rc::new(s)).is_empty());
     }
 }

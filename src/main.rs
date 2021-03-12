@@ -10,7 +10,7 @@ mod canvas;
 use canvas::Canvas;
 
 mod color;
-use color::{Color, BLACK, WHITE};
+use color::{Color, BLACK, DBROWN, LBROWN, WHITE};
 
 mod hit_record;
 
@@ -35,7 +35,7 @@ mod ray;
 use ray::Ray;
 
 mod shape;
-use shape::{Plane, Shape, Sphere};
+use shape::{Cube, Plane, Shape, Sphere};
 
 mod vector;
 use vector::Vector;
@@ -46,41 +46,97 @@ use world::World;
 fn main() {
     let mut objects = Vec::<Rc<dyn Shape>>::new();
 
-    let floor_mat = Material::new(Checker::new(WHITE, BLACK), 0.1, 0.9, 0., 200., 0.5, 0., 1.);
-    let floor = Plane::new(Matrix::scaling(0.25, 0.25, 0.25), floor_mat);
-    objects.push(Rc::new(floor));
+    let room_mat = Material::default()
+        .with_pattern(Checker::new(BLACK, WHITE).with_transform(Matrix::scaling(0.2, 0.2, 0.2)));
+    let room = Cube::new()
+        .with_material(room_mat)
+        .with_transform(Matrix::scaling(5., 5., 5.) * Matrix::translation(0., 1., 0.));
+    objects.push(Rc::new(room));
 
-    let mut m_outer = Material::default();
-    m_outer.pattern = Box::new(Solid::new(BLACK));
-    m_outer.ambient = 0.5;
-    m_outer.specular = 0.;
-    m_outer.shininess = 0.;
-    m_outer.transparency = 1.;
-    m_outer.refractive_index = 1.5;
-    let outer = Sphere::new()
-        .set_transform(Matrix::translation(0., 1., 0.))
-        .set_material(m_outer);
-    objects.push(Rc::new(outer));
+    let table_top_pattern = Stripe::new(LBROWN, DBROWN)
+        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let table_top_mat = Material::default()
+        .with_pattern(table_top_pattern);
+    let table_top = Cube::new()
+        .with_material(table_top_mat)
+        .with_transform(Matrix::translation(0., 1., 0.) * Matrix::scaling(1., 0.1, 1.));
+    objects.push(Rc::new(table_top));
 
-    let mut m_inner = Material::default();
-    m_inner.pattern = Box::new(Solid::new(BLACK));
-    m_inner.specular = 0.;
-    m_inner.shininess = 0.;
-    m_inner.transparency = 1.;
-    m_inner.refractive_index = 1.;
-    let inner = Sphere::new()
-        .set_transform(Matrix::translation(0., 1., 0.) * Matrix::scaling(0.5, 0.5, 0.5))
-        .set_material(m_inner);
-    objects.push(Rc::new(inner));
+    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
+        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default()
+        .with_pattern(leg_mat_pattern);
+    let leg1 = Cube::new()
+        .with_material(leg_mat)
+        .with_transform(Matrix::translation(0.9, 0., 0.9) * Matrix::scaling(0.1, 1., 0.1));
+    objects.push(Rc::new(leg1));
+
+    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
+        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default()
+        .with_pattern(leg_mat_pattern);
+    let leg2 = Cube::new()
+        .with_material(leg_mat)
+        .with_transform(Matrix::translation(-0.9, 0., 0.9) * Matrix::scaling(0.1, 1., 0.1));
+    objects.push(Rc::new(leg2));
+
+    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
+        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default()
+        .with_pattern(leg_mat_pattern);
+    let leg3 = Cube::new()
+        .with_material(leg_mat)
+        .with_transform(Matrix::translation(-0.9, 0., -0.9) * Matrix::scaling(0.1, 1., 0.1));
+    objects.push(Rc::new(leg3));
+
+    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
+        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default()
+        .with_pattern(leg_mat_pattern);
+    let leg4 = Cube::new()
+        .with_material(leg_mat)
+        .with_transform(Matrix::translation(0.9, 0., -0.9) * Matrix::scaling(0.1, 1., 0.1));
+    objects.push(Rc::new(leg4));
+
+    let sphere_pattern = Solid::new(BLACK);
+    let sphere_mat = Material::default()
+        .with_diffuse(0.)
+        .with_pattern(sphere_pattern)
+        .with_transparency(1.)
+        .with_refractive_index(1.5);
+    let sphere = Sphere::new()
+        .with_material(sphere_mat)
+        .with_transform(Matrix::translation(0.5, 1.3, 0.) * Matrix::scaling(0.2, 0.2, 0.2));
+    objects.push(Rc::new(sphere));
+
+    let mirror_pattern = Solid::new(BLACK);
+    let mirror_mat = Material::default()
+        .with_diffuse(0.9)
+        .with_pattern(mirror_pattern)
+        .with_reflective(0.3);
+    let mirror = Cube::new()
+        .with_material(mirror_mat)
+        .with_transform(Matrix::translation(0., 2., 4.9) * Matrix::scaling(2., 1., 0.01));
+    objects.push(Rc::new(mirror));
+
+    let cube_pattern = Solid::new(Color::new(0.1, 0.3, 0.9));
+    let cube_mat = Material::default()
+        .with_pattern(cube_pattern)
+        .with_transparency(0.1);
+    let cube = Cube::new()
+        .with_material(cube_mat)
+        .with_transform(Matrix::translation(-0.5, 1.25, -0.5) * Matrix::scaling(0.2, 0.2, 0.2) * Matrix::rotation(Axis::Y, -PI / 3.));
+    objects.push(Rc::new(cube));
 
     let camera_tf = camera::view_transform(
-        Point::new(0., 1.5, -5.),
+        Point::new(1.5, 1.5, -3.5),
         Point::new(0., 1., 0.),
         Vector::new(0., 1., 0.),
     );
-    let camera = Camera::new(640, 480, PI / 3.).set_transform(camera_tf);
+    let camera = Camera::new(424, 240, PI / 3.).with_transform(camera_tf);
 
-    let world = World::new(objects, PointLight::default());
+    let light = PointLight::new(Point::new(-4., 4., -4.), Color::new(1., 1., 1.));
+    let world = World::new(objects, light);
     let canvas = world.render(camera, 5);
     println!("{}", canvas.to_ppm());
 }

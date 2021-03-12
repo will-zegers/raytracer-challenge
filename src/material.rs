@@ -50,6 +50,46 @@ impl Material {
             refractive_index: 1.,
         }
     }
+
+    pub fn with_pattern(mut self, pattern: impl Pattern + 'static) -> Self {
+        self.pattern = Box::new(pattern);
+        self
+    }
+
+    pub fn with_ambient(mut self, ambient: f64) -> Self {
+        self.ambient = ambient;
+        self
+    }
+
+    pub fn with_diffuse(mut self, diffuse: f64) -> Self {
+        self.diffuse = diffuse;
+        self
+    }
+
+    pub fn with_specular(mut self, specular: f64) -> Self {
+        self.specular = specular;
+        self
+    }
+
+    pub fn with_shininess(mut self, shininess: f64) -> Self {
+        self.shininess = shininess;
+        self
+    }
+
+    pub fn with_reflective(mut self, reflective: f64) -> Self {
+        self.reflective = reflective;
+        self
+    }
+
+    pub fn with_transparency(mut self, transparency: f64) -> Self {
+        self.transparency = transparency;
+        self
+    }
+
+    pub fn with_refractive_index(mut self, refractive_index: f64) -> Self {
+        self.refractive_index = refractive_index;
+        self
+    }
 }
 
 #[cfg(test)]

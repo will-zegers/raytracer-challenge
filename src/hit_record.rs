@@ -146,7 +146,7 @@ mod test {
     fn over_point() {
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let t = Matrix::translation(0., 0., 1.);
-        let shape = Sphere::new().set_transform(t);
+        let shape = Sphere::new().with_transform(t);
         let i = Intersection::new(5., Rc::new(shape));
 
         let rec = HitRecord::new(&i, &r, &IntersectionList::new());
@@ -176,22 +176,22 @@ mod test {
         let mut m_a = Material::default();
         m_a.refractive_index = 1.5;
         let a = Sphere::glass()
-            .set_transform(Matrix::scaling(2., 2., 2.))
-            .set_material(m_a);
+            .with_transform(Matrix::scaling(2., 2., 2.))
+            .with_material(m_a);
         let a = Rc::new(a);
 
         let mut m_b = Material::default();
         m_b.refractive_index = 2.0;
         let b = Sphere::glass()
-            .set_transform(Matrix::translation(0., 0., -0.25))
-            .set_material(m_b);
+            .with_transform(Matrix::translation(0., 0., -0.25))
+            .with_material(m_b);
         let b = Rc::new(b);
 
         let mut m_c = Material::default();
         m_c.refractive_index = 2.5;
         let c = Sphere::glass()
-            .set_transform(Matrix::translation(0., 0., 0.25))
-            .set_material(m_c);
+            .with_transform(Matrix::translation(0., 0., 0.25))
+            .with_material(m_c);
         let c = Rc::new(c);
 
         let r = Ray::new(Point::new(0., 0., -4.), Vector::new(0., 0., 1.));
@@ -233,7 +233,7 @@ mod test {
     fn under_point() {
         // the under point is the offset below the surface
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let s = Sphere::glass().set_transform(Matrix::translation(0., 0., 1.));
+        let s = Sphere::glass().with_transform(Matrix::translation(0., 0., 1.));
         let s = Rc::new(s);
         let i = Intersection::new(5., s);
         let xs = vec![i.clone()];
