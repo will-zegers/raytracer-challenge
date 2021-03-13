@@ -15,7 +15,6 @@ pub struct PointLight {
 }
 
 impl PointLight {
-
     pub fn new(position: Point, intensity: Color) -> Self {
         Self {
             position,

@@ -25,28 +25,28 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn new(i: &Intersection, r: &Ray, xs: &IntersectionList) -> Self {
+    pub fn new(i: &Intersection, r: Ray, xs: &IntersectionList) -> Self {
         let mut containers: Vec<Rc<dyn Shape>> = Vec::new();
         let mut n1 = 1.;
         let mut n2 = 1.;
 
-        'refraction_indices: for j in 0..xs.len() {
-            if ptr::eq(&i.object, &xs[j].object) {
+        'refraction_indices: for x in xs {
+            if ptr::eq(&i.object, &x.object) {
                 if let Some(obj) = containers.last() {
                     n1 = obj.material().refractive_index;
                 }
             }
             match containers
                 .iter()
-                .position(|obj| Rc::ptr_eq(&obj, &xs[j].object))
+                .position(|obj| Rc::ptr_eq(&obj, &x.object))
             {
                 Some(found) => {
                     containers.remove(found);
                 }
-                None => containers.push(xs[j].object.clone()),
+                None => containers.push(x.object.clone()),
             }
 
-            if ptr::eq(&i.object, &xs[j].object) {
+            if ptr::eq(&i.object, &x.object) {
                 if let Some(obj) = containers.last() {
                     n2 = obj.material().refractive_index;
                 }
@@ -121,7 +121,7 @@ mod test {
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
         let s = Sphere::new();
         let i = Intersection::new(4., Rc::new(s));
-        let h = HitRecord::new(&i, &r, &IntersectionList::new());
+        let h = HitRecord::new(&i, r, &IntersectionList::new());
 
         assert_eq!(h.t, i.t);
         // assert_eq!(h.object, i.object);
@@ -134,7 +134,7 @@ mod test {
         let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.));
         let s = Sphere::new();
         let i = Intersection::new(1., Rc::new(s));
-        let h = HitRecord::new(&i, &r, &IntersectionList::new());
+        let h = HitRecord::new(&i, r, &IntersectionList::new());
 
         assert_eq!(h.point, Point::new(0., 0., 1.));
         assert_eq!(h.eyev, Vector::new(0., 0., -1.));
@@ -149,7 +149,7 @@ mod test {
         let shape = Sphere::new().with_transform(t);
         let i = Intersection::new(5., Rc::new(shape));
 
-        let rec = HitRecord::new(&i, &r, &IntersectionList::new());
+        let rec = HitRecord::new(&i, r, &IntersectionList::new());
         assert!(rec.over_point.z < EPSILON / 2.);
         assert!(rec.point.z > rec.over_point.z);
     }
@@ -164,7 +164,7 @@ mod test {
         );
         let xs = r.intersects(shape.clone());
         let i = Intersection::new(xs[0].t, shape);
-        let rec = HitRecord::new(&i, &r, &IntersectionList::new());
+        let rec = HitRecord::new(&i, r, &IntersectionList::new());
         assert_eq!(
             rec.reflectv,
             Vector::new(0., f64::sqrt(2.) / 2., f64::sqrt(2.) / 2.)
@@ -204,27 +204,27 @@ mod test {
             Intersection::new(6., a.clone()),
         ];
 
-        let rec = HitRecord::new(&xs[0], &r, &xs);
+        let rec = HitRecord::new(&xs[0], r, &xs);
         assert_eq!(rec.n1, 1.0);
         assert_eq!(rec.n2, 1.5);
 
-        let rec = HitRecord::new(&xs[1], &r, &xs);
+        let rec = HitRecord::new(&xs[1], r, &xs);
         assert_eq!(rec.n1, 1.5);
         assert_eq!(rec.n2, 2.0);
 
-        let rec = HitRecord::new(&xs[2], &r, &xs);
+        let rec = HitRecord::new(&xs[2], r, &xs);
         assert_eq!(rec.n1, 2.0);
         assert_eq!(rec.n2, 2.5);
 
-        let rec = HitRecord::new(&xs[3], &r, &xs);
+        let rec = HitRecord::new(&xs[3], r, &xs);
         assert_eq!(rec.n1, 2.5);
         assert_eq!(rec.n2, 2.5);
 
-        let rec = HitRecord::new(&xs[4], &r, &xs);
+        let rec = HitRecord::new(&xs[4], r, &xs);
         assert_eq!(rec.n1, 2.5);
         assert_eq!(rec.n2, 1.5);
 
-        let rec = HitRecord::new(&xs[5], &r, &xs);
+        let rec = HitRecord::new(&xs[5], r, &xs);
         assert_eq!(rec.n1, 1.5);
         assert_eq!(rec.n2, 1.0);
     }
@@ -238,7 +238,7 @@ mod test {
         let i = Intersection::new(5., s);
         let xs = vec![i.clone()];
 
-        let rec = HitRecord::new(&i, &r, &xs);
+        let rec = HitRecord::new(&i, r, &xs);
 
         assert!(rec.under_point.z > EPSILON / 2.);
         assert!(rec.point.z < rec.under_point.z);
@@ -263,7 +263,7 @@ mod test {
             for t in shape.local_intersect(r) {
                 xs.push(Intersection::new(t, shape.clone()));
             }
-            let rec = HitRecord::new(&xs[1], &r, &xs);
+            let rec = HitRecord::new(&xs[1], r, &xs);
             assert_eq!(rec.schlick(), 1.);
         }
 
@@ -275,7 +275,7 @@ mod test {
             for t in shape.local_intersect(r) {
                 xs.push(Intersection::new(t, shape.clone()));
             }
-            let rec = HitRecord::new(&xs[1], &r, &xs);
+            let rec = HitRecord::new(&xs[1], r, &xs);
             assert!((rec.schlick() - 0.04).abs() < TOL);
         }
 
@@ -287,7 +287,7 @@ mod test {
             for t in shape.local_intersect(r) {
                 xs.push(Intersection::new(t, shape.clone()));
             }
-            let rec = HitRecord::new(&xs[0], &r, &xs);
+            let rec = HitRecord::new(&xs[0], r, &xs);
             assert!((rec.schlick() - 0.488814383).abs() < TOL);
         }
     }

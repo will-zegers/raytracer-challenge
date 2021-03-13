@@ -42,7 +42,11 @@ impl World {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
+        let s1 = Rc::new(
+            Sphere::new()
+                .with_transform(Matrix::eye(4))
+                .with_material(m1),
+        );
         let s2 = Rc::new(
             Sphere::new()
                 .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
@@ -59,7 +63,7 @@ impl World {
         self.objects.push(shape);
     }
 
-    pub fn intersects(&self, r: &Ray) -> IntersectionList {
+    pub fn intersects(&self, r: Ray) -> IntersectionList {
         let mut xs = IntersectionList::new();
         for obj in &self.objects {
             let hits = r.intersects(obj.clone());
@@ -91,7 +95,7 @@ impl World {
         surface + reflected + refracted
     }
 
-    fn color_at(&self, r: &Ray, remaining: i32) -> Color {
+    fn color_at(&self, r: Ray, remaining: i32) -> Color {
         let mut xs = self.intersects(r);
         intersection::sort(&mut xs);
         return match intersection::hit(&xs) {
@@ -108,7 +112,7 @@ impl World {
         for y in 0..c.vsize {
             for x in 0..c.hsize {
                 let ray = c.pixel_to_ray(x, y);
-                let color = self.color_at(&ray, depth);
+                let color = self.color_at(ray, depth);
                 image.write_pixel(x, y, color);
             }
         }
@@ -121,7 +125,7 @@ impl World {
         let direction = v.normalize();
 
         let r = Ray::new(*p, direction);
-        let mut xs = self.intersects(&r);
+        let mut xs = self.intersects(r);
 
         return match intersection::hit(&mut xs) {
             Some(hit) => hit.t < distance,
@@ -134,7 +138,7 @@ impl World {
             return color::BLACK;
         }
         let r = Ray::new(rec.over_point, rec.reflectv);
-        self.color_at(&r, remaining - 1) * rec.object.material().reflective
+        self.color_at(r, remaining - 1) * rec.object.material().reflective
     }
 
     fn refracted_color(&self, rec: &HitRecord, remaining: i32) -> Color {
@@ -146,7 +150,7 @@ impl World {
         return match Vector::refract(&rec.normalv, &rec.eyev, rec.n1 / rec.n2) {
             Some(direction) => {
                 let refract_ray = Ray::new(rec.under_point, direction);
-                self.color_at(&refract_ray, remaining - 1) * rec.object.material().transparency
+                self.color_at(refract_ray, remaining - 1) * rec.object.material().transparency
             }
             None => color::BLACK,
         };
@@ -179,7 +183,11 @@ mod test {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
+        let s1 = Rc::new(
+            Sphere::new()
+                .with_transform(Matrix::eye(4))
+                .with_material(m1),
+        );
         let s2 = Rc::new(
             Sphere::new()
                 .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
@@ -196,7 +204,7 @@ mod test {
     fn intersects() {
         let w = World::default();
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let xs = w.intersects(&r);
+        let xs = w.intersects(r);
         assert_eq!(xs.len(), 4);
         assert_eq!(xs[0].t, 4.);
         assert_eq!(xs[1].t, 4.5);
@@ -211,11 +219,11 @@ mod test {
         fn at_an_intersection() {
             let w = World::default();
             let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-            let xs = w.intersects(&r);
+            let xs = w.intersects(r);
             assert_ne!(xs.len(), 0);
             assert_eq!(xs[0], Intersection::new(4.0, w.objects[0].clone()));
 
-            let rec = HitRecord::new(&xs[0], &r, &mut IntersectionList::new());
+            let rec = HitRecord::new(&xs[0], r, &mut IntersectionList::new());
             let c = w.shade(&rec, DEFAULT_DEPTH);
             assert_eq!(c, Color::new(0.380661193, 0.475826491, 0.285495894));
         }
@@ -225,8 +233,8 @@ mod test {
             let mut w = World::default();
             w.light = PointLight::new(Point::new(0., 0.25, 0.), Color::new(1., 1., 1.));
             let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.));
-            let xs = w.intersects(&r);
-            let rec = HitRecord::new(&xs[2], &r, &mut IntersectionList::new());
+            let xs = w.intersects(r);
+            let rec = HitRecord::new(&xs[2], r, &mut IntersectionList::new());
             let c = w.shade(&rec, DEFAULT_DEPTH);
             assert_eq!(c, Color::new(0.904984472, 0.904984472, 0.904984472));
         }
@@ -244,9 +252,9 @@ mod test {
             let w = World::new(vec![s1, s2], light);
 
             let r = Ray::new(Point::new(0., 0., 5.), Vector::new(0., 0., 1.));
-            let mut xs = w.intersects(&r);
+            let mut xs = w.intersects(r);
             let hit = intersection::hit(&mut xs).unwrap();
-            let rec = HitRecord::new(&hit, &r, &mut IntersectionList::new());
+            let rec = HitRecord::new(&hit, r, &mut IntersectionList::new());
             let c = w.shade(&rec, DEFAULT_DEPTH);
             assert_eq!(c, Color::new(0.1, 0.1, 0.1));
         }
@@ -265,7 +273,11 @@ mod test {
                 0.,
                 1.,
             );
-            let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
+            let s1 = Rc::new(
+                Sphere::new()
+                    .with_transform(Matrix::eye(4))
+                    .with_material(m1),
+            );
 
             let s2 = Rc::new(
                 Sphere::new()
@@ -287,9 +299,9 @@ mod test {
                 Point::new(0., 0., 3.),
                 Vector::new(0., -f64::sqrt(2.) / 2., f64::sqrt(2.) / 2.),
             );
-            let mut xs = w.intersects(&r);
+            let mut xs = w.intersects(r);
             let i = intersection::hit(&mut xs).unwrap();
-            let rec = HitRecord::new(&i, &r, &mut IntersectionList::new());
+            let rec = HitRecord::new(&i, r, &mut IntersectionList::new());
             let color = w.shade(&rec, DEFAULT_DEPTH);
             assert_eq!(color, Color::new(0.584805085, 0.584805085, 0.584805085));
         }
@@ -317,8 +329,8 @@ mod test {
                 Point::new(0., 0., -3.),
                 Vector::new(0., -f64::sqrt(2.) / 2., f64::sqrt(2.) / 2.),
             );
-            let xs = w.intersects(&r);
-            let rec = HitRecord::new(&xs[0], &r, &xs);
+            let xs = w.intersects(r);
+            let rec = HitRecord::new(&xs[0], r, &xs);
             assert_eq!(
                 w.shade(&rec, 5),
                 Color::new(0.936425388, 0.686425388, 0.686425388)
@@ -350,8 +362,8 @@ mod test {
                 .with_material(m_ball);
             w.add(Rc::new(ball));
 
-            let xs = w.intersects(&r);
-            let rec = HitRecord::new(&xs[0], &r, &xs);
+            let xs = w.intersects(r);
+            let rec = HitRecord::new(&xs[0], r, &xs);
             assert_eq!(
                 w.shade(&rec, 5),
                 Color::new(0.933915140, 0.696434226, 0.692430691)
@@ -364,13 +376,13 @@ mod test {
         // the color when a ray misses
         let w = World::default();
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 1., 0.));
-        let c = w.color_at(&r, DEFAULT_DEPTH);
+        let c = w.color_at(r, DEFAULT_DEPTH);
         assert_eq!(c, Color::new(0., 0., 0.));
 
         // the color when a ray hits
         let w = World::default();
         let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-        let c = w.color_at(&r, DEFAULT_DEPTH);
+        let c = w.color_at(r, DEFAULT_DEPTH);
         assert_eq!(c, Color::new(0.380661193, 0.475826491, 0.285495894));
 
         // the color with an intersection behind the ray
@@ -386,7 +398,11 @@ mod test {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
+        let s1 = Rc::new(
+            Sphere::new()
+                .with_transform(Matrix::eye(4))
+                .with_material(m1),
+        );
 
         let m2 = Material::new(
             Solid::new(Color::new(1., 1., 1.)),
@@ -409,7 +425,7 @@ mod test {
         let inner_color = Color::new(1., 1., 1.);
 
         let r = Ray::new(Point::new(0., 0., 0.75), Vector::new(0., 0., -1.));
-        let c = w.color_at(&r, DEFAULT_DEPTH);
+        let c = w.color_at(r, DEFAULT_DEPTH);
         assert_eq!(c, inner_color);
 
         // color_at with mutually reflected surfaces
@@ -433,7 +449,7 @@ mod test {
         let w = World::new(vec![p1, p2], light);
 
         let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 0.));
-        w.color_at(&r, DEFAULT_DEPTH); // should terminate, i.e. not recurse infinitely
+        w.color_at(r, DEFAULT_DEPTH); // should terminate, i.e. not recurse infinitely
     }
 
     #[test]
@@ -469,7 +485,11 @@ mod test {
             0.,
             1.,
         );
-        let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
+        let s1 = Rc::new(
+            Sphere::new()
+                .with_transform(Matrix::eye(4))
+                .with_material(m1),
+        );
         let m2 = Material::new(
             Solid::new(Color::new(1., 1., 1.)),
             1.,
@@ -490,7 +510,7 @@ mod test {
         // strike a non-reflective surface
         let r = Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.));
         let i = Intersection::new(1., w.objects[1].clone());
-        let rec = HitRecord::new(&i, &r, &mut IntersectionList::new());
+        let rec = HitRecord::new(&i, r, &mut IntersectionList::new());
         let color = w.reflected_color(&rec, DEFAULT_DEPTH);
 
         assert_eq!(color, Color::new(0., 0., 0.));
@@ -509,9 +529,9 @@ mod test {
             Vector::new(0., -f64::sqrt(2.) / 2., f64::sqrt(2.) / 2.),
         );
 
-        let mut xs = w.intersects(&r);
+        let mut xs = w.intersects(r);
         let i = intersection::hit(&mut xs).unwrap();
-        let rec = HitRecord::new(&i, &r, &mut IntersectionList::new());
+        let rec = HitRecord::new(&i, r, &mut IntersectionList::new());
         let color = w.reflected_color(&rec, DEFAULT_DEPTH);
         assert_eq!(color, Color::new(0.190330596, 0.237913245, 0.142747947));
 
@@ -529,9 +549,9 @@ mod test {
             Vector::new(0., -f64::sqrt(2.) / 2., f64::sqrt(2.) / 2.),
         );
 
-        let mut xs = w.intersects(&r);
+        let mut xs = w.intersects(r);
         let i = intersection::hit(&mut xs).unwrap();
-        let rec = HitRecord::new(&i, &r, &mut IntersectionList::new());
+        let rec = HitRecord::new(&i, r, &mut IntersectionList::new());
         let color = w.reflected_color(&rec, 0);
         assert_eq!(color, Color::new(0., 0., 0.));
     }
@@ -545,9 +565,9 @@ mod test {
             let w = World::default();
             let s = w.objects.first().unwrap();
             let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
-            let xs = w.intersects(&r);
+            let xs = w.intersects(r);
 
-            let rec = HitRecord::new(&xs[0], &r, &xs);
+            let rec = HitRecord::new(&xs[0], r, &xs);
             assert_eq!(w.refracted_color(&rec, 5), color::BLACK);
         }
 
@@ -558,7 +578,11 @@ mod test {
             m1.specular = 0.2;
             m1.transparency = 1.;
             m1.refractive_index = 1.5;
-            let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
+            let s1 = Rc::new(
+                Sphere::new()
+                    .with_transform(Matrix::eye(4))
+                    .with_material(m1),
+            );
 
             let s2 = Rc::new(
                 Sphere::new()
@@ -569,8 +593,8 @@ mod test {
 
             let r = Ray::new(Point::new(0., 0., -5.), Vector::new(0., 0., 1.));
             let shape = w.objects.first().unwrap();
-            let xs = w.intersects(&r);
-            let rec = HitRecord::new(&xs[0], &r, &xs);
+            let xs = w.intersects(r);
+            let rec = HitRecord::new(&xs[0], r, &xs);
             assert_eq!(w.refracted_color(&rec, 0), color::BLACK);
         }
 
@@ -581,7 +605,11 @@ mod test {
             m1.specular = 0.2;
             m1.transparency = 1.;
             m1.refractive_index = 1.5;
-            let s1 = Rc::new(Sphere::new().with_transform(Matrix::eye(4)).with_material(m1));
+            let s1 = Rc::new(
+                Sphere::new()
+                    .with_transform(Matrix::eye(4))
+                    .with_material(m1),
+            );
 
             let s2 = Rc::new(
                 Sphere::new()
@@ -594,8 +622,8 @@ mod test {
                 Point::new(0., 0., f64::sqrt(2.) / 2.),
                 Vector::new(0., 1., 0.),
             );
-            let xs = w.intersects(&r);
-            let rec = HitRecord::new(&xs[1], &r, &xs);
+            let xs = w.intersects(r);
+            let rec = HitRecord::new(&xs[1], r, &xs);
             assert_eq!(w.refracted_color(&rec, 5), color::BLACK);
         }
 
@@ -616,8 +644,8 @@ mod test {
             let w = World::new(vec![s1.clone(), s2.clone()], PointLight::default());
 
             let r = Ray::new(Point::new(0., 0., 0.1), Vector::new(0., 1., 0.));
-            let xs = w.intersects(&r);
-            let rec = HitRecord::new(&xs[2], &r, &xs);
+            let xs = w.intersects(r);
+            let rec = HitRecord::new(&xs[2], r, &xs);
             assert_eq!(
                 w.refracted_color(&rec, 5),
                 Color::new(0.0, 0.998884703, 0.047215978)

@@ -53,46 +53,41 @@ fn main() {
         .with_transform(Matrix::scaling(5., 5., 5.) * Matrix::translation(0., 1., 0.));
     objects.push(Rc::new(room));
 
-    let table_top_pattern = Stripe::new(LBROWN, DBROWN)
-        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
-    let table_top_mat = Material::default()
-        .with_pattern(table_top_pattern);
+    let table_top_pattern =
+        Stripe::new(LBROWN, DBROWN).with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let table_top_mat = Material::default().with_pattern(table_top_pattern);
     let table_top = Cube::new()
         .with_material(table_top_mat)
         .with_transform(Matrix::translation(0., 1., 0.) * Matrix::scaling(1., 0.1, 1.));
     objects.push(Rc::new(table_top));
 
-    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
-        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
-    let leg_mat = Material::default()
-        .with_pattern(leg_mat_pattern);
+    let leg_mat_pattern =
+        Stripe::new(LBROWN, DBROWN).with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default().with_pattern(leg_mat_pattern);
     let leg1 = Cube::new()
         .with_material(leg_mat)
         .with_transform(Matrix::translation(0.9, 0., 0.9) * Matrix::scaling(0.1, 1., 0.1));
     objects.push(Rc::new(leg1));
 
-    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
-        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
-    let leg_mat = Material::default()
-        .with_pattern(leg_mat_pattern);
+    let leg_mat_pattern =
+        Stripe::new(LBROWN, DBROWN).with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default().with_pattern(leg_mat_pattern);
     let leg2 = Cube::new()
         .with_material(leg_mat)
         .with_transform(Matrix::translation(-0.9, 0., 0.9) * Matrix::scaling(0.1, 1., 0.1));
     objects.push(Rc::new(leg2));
 
-    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
-        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
-    let leg_mat = Material::default()
-        .with_pattern(leg_mat_pattern);
+    let leg_mat_pattern =
+        Stripe::new(LBROWN, DBROWN).with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default().with_pattern(leg_mat_pattern);
     let leg3 = Cube::new()
         .with_material(leg_mat)
         .with_transform(Matrix::translation(-0.9, 0., -0.9) * Matrix::scaling(0.1, 1., 0.1));
     objects.push(Rc::new(leg3));
 
-    let leg_mat_pattern = Stripe::new(LBROWN, DBROWN)
-        .with_transform(Matrix::scaling(0.02, 0.02, 0.02));
-    let leg_mat = Material::default()
-        .with_pattern(leg_mat_pattern);
+    let leg_mat_pattern =
+        Stripe::new(LBROWN, DBROWN).with_transform(Matrix::scaling(0.02, 0.02, 0.02));
+    let leg_mat = Material::default().with_pattern(leg_mat_pattern);
     let leg4 = Cube::new()
         .with_material(leg_mat)
         .with_transform(Matrix::translation(0.9, 0., -0.9) * Matrix::scaling(0.1, 1., 0.1));
@@ -123,9 +118,11 @@ fn main() {
     let cube_mat = Material::default()
         .with_pattern(cube_pattern)
         .with_transparency(0.1);
-    let cube = Cube::new()
-        .with_material(cube_mat)
-        .with_transform(Matrix::translation(-0.5, 1.25, -0.5) * Matrix::scaling(0.2, 0.2, 0.2) * Matrix::rotation(Axis::Y, -PI / 3.));
+    let cube = Cube::new().with_material(cube_mat).with_transform(
+        Matrix::translation(-0.5, 1.25, -0.5)
+            * Matrix::scaling(0.2, 0.2, 0.2)
+            * Matrix::rotation(Axis::Y, -PI / 3.),
+    );
     objects.push(Rc::new(cube));
 
     let camera_tf = camera::view_transform(
@@ -133,7 +130,7 @@ fn main() {
         Point::new(0., 1., 0.),
         Vector::new(0., 1., 0.),
     );
-    let camera = Camera::new(424, 240, PI / 3.).with_transform(camera_tf);
+    let camera = Camera::new(1920, 1080, PI / 3.).with_transform(camera_tf);
 
     let light = PointLight::new(Point::new(-4., 4., -4.), Color::new(1., 1., 1.));
     let world = World::new(objects, light);

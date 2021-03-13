@@ -1,3 +1,4 @@
+use std::f64::EPSILON as BaseEPSILON;
 use std::f64::INFINITY;
 use std::mem;
 
@@ -10,7 +11,7 @@ use crate::point::Point;
 use crate::ray::Ray;
 use crate::vector::Vector;
 
-const EPSILON: f64 = 1e-9;
+const EPSILON: f64 = BaseEPSILON * 1e6;
 
 pub struct Cube {
     material: Material,
